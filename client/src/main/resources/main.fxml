@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox alignment="center" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.Controller">
+    <MenuBar>
+        <Menu text="File Hosting">
+            <MenuItem text="Exit" onAction="#itemExitAction">
+
+            </MenuItem>
+        </Menu>
+    </MenuBar>
+    <HBox spacing="5.0">
+        <TextField editable="false" opacity="0.0" HBox.hgrow="ALWAYS" />
+        <Button text="Авторизоваться" onAction="#btnAuth"/>
+      <padding>
+         <Insets left="5.0" />
+      </padding>
+    </HBox>
+    <TableView fx:id="filesTable" VBox.vgrow="ALWAYS" />
+    <HBox alignment="center" spacing="10">
+        <Button text="Upload" onAction="#btnUpload">
+
+        </Button>
+        <Button text="Download" onAction="#btnDownload">
+
+        </Button>
+        <Button text="Delete" onAction="#btnDelete">
+            
+        </Button>
+        <Button text="Create Folder" onAction="#btnFldCreate">
+
+        </Button>
+      <padding>
+         <Insets bottom="5.0" top="5.0" />
+      </padding>
+    </HBox>
+
+</VBox>
