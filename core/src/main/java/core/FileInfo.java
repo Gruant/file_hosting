@@ -1,10 +1,12 @@
 package core;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class FileInfo {
+public class FileInfo implements Serializable {
+
     public enum FileType {
         FILE("File"), DIRECTORY("Directory");
 

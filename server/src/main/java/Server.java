@@ -1,10 +1,8 @@
-import java.io.IOException;
+import core.Receiver;
+
+import java.io.*;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
+import java.nio.channels.*;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -29,7 +27,7 @@ public class Server {
     }
 
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
         try {
             new Server().start();
         } finally {
@@ -38,15 +36,15 @@ public class Server {
         }
     }
 
-    public void start() throws IOException {
+    public void start() throws IOException, ClassNotFoundException {
         while (true) {
             acceptSelector(acceptSelector);
         }
     }
 
 
-    public void acceptSelector (Selector selector) throws IOException {
-        selector.select();
+    public void acceptSelector (Selector selector) throws IOException, ClassNotFoundException {
+        selector.selectNow();
 
         Set<SelectionKey> selectionKeys = acceptSelector.selectedKeys();
         Iterator<SelectionKey> keyIterator = selectionKeys.iterator();
@@ -75,13 +73,11 @@ public class Server {
         System.out.println("User is connect");
     }
 
-    public void readMessage(SelectionKey key) throws IOException {
+    public void readMessage(SelectionKey key) throws IOException, ClassNotFoundException {
         SocketChannel client = (SocketChannel) key.channel();
-        ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
+        Receiver receiver = new Receiver(client);
+        receiver.getFile();
 
-        client.read(byteBuffer);
-        String message = new String(byteBuffer.array());
-        System.out.println("New message: " + message);
     }
 
 
