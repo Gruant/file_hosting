@@ -44,7 +44,7 @@ public class Server {
 
 
     public void acceptSelector (Selector selector) throws IOException, ClassNotFoundException {
-        selector.selectNow();
+        selector.select();
 
         Set<SelectionKey> selectionKeys = acceptSelector.selectedKeys();
         Iterator<SelectionKey> keyIterator = selectionKeys.iterator();
@@ -57,7 +57,9 @@ public class Server {
             }
 
             if (key.isReadable()) {
+                System.out.println("Start reading");
                 readMessage(key);
+                System.out.println("reading");
             }
 
             keyIterator.remove();
@@ -77,7 +79,6 @@ public class Server {
         SocketChannel client = (SocketChannel) key.channel();
         Receiver receiver = new Receiver(client);
         receiver.getFile();
-
     }
 
 

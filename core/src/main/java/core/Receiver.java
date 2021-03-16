@@ -1,6 +1,7 @@
 package core;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.nio.ByteBuffer;
@@ -13,7 +14,7 @@ import java.util.EnumSet;
 
 public class Receiver {
     SocketChannel channel;
-    FileInfo fileInfo;
+
     ByteBuffer data = ByteBuffer.allocate(1024);
     ByteBuffer buf = ByteBuffer.allocate(1024);
 
@@ -21,22 +22,21 @@ public class Receiver {
         this.channel = channel;
     }
 
-    private void getFileInfo() throws IOException, ClassNotFoundException {
+    private FileInfo getFileInfo() throws IOException, ClassNotFoundException {
         channel.read(data);
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data.array());
         ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
-        fileInfo = (FileInfo) objectInputStream.readObject();
+        FileInfo fileInfo = (FileInfo) objectInputStream.readObject();
         data.clear();
-
+        System.out.println("Get FileInfo");
         objectInputStream.close();
         byteArrayInputStream.close();
+        return fileInfo;
     }
 
     public void getFile() throws IOException, ClassNotFoundException {
-        getFileInfo();
-        System.out.println(fileInfo.getFilename());
-
-        FileInfo file = fileInfo;
+        FileInfo file = getFileInfo();
+        System.out.println(file.getFilename());
         Path path = Paths.get(file.getFilename());
         FileChannel fileChannel = FileChannel.open(path, EnumSet.of(StandardOpenOption.CREATE,
                 StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE));
@@ -46,7 +46,11 @@ public class Receiver {
             fileChannel.write(buf);
             buf.compact();
         }
+
+        channel.write(ByteBuffer.wrap("Done".getBytes()));
         fileChannel.close();
+        buf.clear();
+        System.out.println("Done");
     }
 }
 

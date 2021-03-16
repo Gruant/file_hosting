@@ -1,5 +1,6 @@
 package core;
 
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -66,10 +67,19 @@ public class Sender {
     }
 
     public void sendAllFilesFromDir() throws Exception {
+        ByteBuffer response = ByteBuffer.allocate(4);
         List<Path> paths = getFiles(this.path);
         for (Path path: paths) {
             sendFileWithProtocol(path);
             System.out.println(path.toString());
+            channel.read(response);
+            if (response.array().equals("Done")) {
+                continue;
+            } else {
+                System.out.println("Wait for Response");
+                Thread.sleep(10000);
+            }
+            response.clear();
         }
     }
 }

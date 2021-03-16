@@ -8,16 +8,11 @@ import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-
-import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.URL;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Properties;
 import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
@@ -69,7 +64,7 @@ public class Controller implements Initializable {
 //        InputStream in = getClass().getResourceAsStream("../token.properties");
 //        prop.load(in);
 //        channel.write(ByteBuffer.wrap(prop.getProperty("token").getBytes()));
-//        sendFile(path);
+        sendFile(path);
     }
 
     public void sendFile(Path path) throws Exception {
