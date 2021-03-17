@@ -1,11 +1,11 @@
 package core;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -14,45 +14,57 @@ import java.util.EnumSet;
 
 public class Receiver {
     SocketChannel channel;
+    Selector selector;
 
-    ByteBuffer data = ByteBuffer.allocate(1024);
-    ByteBuffer buf = ByteBuffer.allocate(1024);
+    ByteBuffer data;
+    ByteBuffer buf;
+    ByteBuffer command;
 
-    public Receiver(SocketChannel channel) {
+    public Receiver(SocketChannel channel, Selector selector) {
+
         this.channel = channel;
+        this.selector = selector;
+        this.data = ByteBuffer.allocate(1024);
+        this.buf = ByteBuffer.allocate(1024);
+        this.command = ByteBuffer.allocate(4);
     }
 
     private FileInfo getFileInfo() throws IOException, ClassNotFoundException {
         channel.read(data);
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data.array());
-        ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
+        ObjectInputStream objectInputStream = new ObjectInputStream(new ByteArrayInputStream(data.array()));
         FileInfo fileInfo = (FileInfo) objectInputStream.readObject();
-        data.clear();
-        System.out.println("Get FileInfo");
+        System.out.println(fileInfo.getFilename());
         objectInputStream.close();
-        byteArrayInputStream.close();
         return fileInfo;
     }
 
     public void getFile() throws IOException, ClassNotFoundException {
-        FileInfo file = getFileInfo();
-        System.out.println(file.getFilename());
-        Path path = Paths.get(file.getFilename());
+        FileInfo fileInfo = getFileInfo();
+        System.out.println(fileInfo.getFilename());
+        Path path = Paths.get(fileInfo.getFilename());
         FileChannel fileChannel = FileChannel.open(path, EnumSet.of(StandardOpenOption.CREATE,
                 StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE));
-
-        while(channel.read(buf) > 0){
+        int res = 1;
+        int count = 0;
+        while (count != fileInfo.getSize()) {
+            buf.clear();
+            res = channel.read(buf);
+            System.out.println(res);
+            System.out.println(res);
             buf.flip();
-            fileChannel.write(buf);
+            if (res > 0) {
+                fileChannel.write(buf);
+                count+=res;
+            }
             buf.compact();
         }
-
-        channel.write(ByteBuffer.wrap("Done".getBytes()));
-        fileChannel.close();
         buf.clear();
-        System.out.println("Done");
+        System.out.println("File is read");
+        fileChannel.close();
+        channel.write(ByteBuffer.wrap("OK".getBytes()));
     }
 }
+
 
 
 

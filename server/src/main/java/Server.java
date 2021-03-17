@@ -59,7 +59,7 @@ public class Server {
             if (key.isReadable()) {
                 System.out.println("Start reading");
                 readMessage(key);
-                System.out.println("reading");
+                System.out.println("Reading done");
             }
 
             keyIterator.remove();
@@ -77,7 +77,7 @@ public class Server {
 
     public void readMessage(SelectionKey key) throws IOException, ClassNotFoundException {
         SocketChannel client = (SocketChannel) key.channel();
-        Receiver receiver = new Receiver(client);
+        Receiver receiver = new Receiver(client, acceptSelector);
         receiver.getFile();
     }
 

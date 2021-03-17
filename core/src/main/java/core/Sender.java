@@ -38,48 +38,64 @@ public class Sender {
     private void sendFile(Path path) throws Exception {
         FileChannel fileChannel = FileChannel.open(path);
         ByteBuffer buf = ByteBuffer.allocate(1024);
-        while (fileChannel.read(buf) > 0){
+        int res = 0;
+        while (true){
+            res = fileChannel.read(buf);
+            if (res < 0) {
+                break;
+            }
             buf.flip();
-            try {
-                channel.write(buf);
-            } catch (IOException e) {
-                throw new Exception("Не удалось отправить файл");
+            while (res > 0){
+                res -= channel.write(buf);
             }
             buf.clear();
         }
         fileChannel.close();
     }
 
-    private void sendFileWithProtocol(Path path) throws Exception {
-        FileInfo info = new FileInfo(path);
-
+    private void sendFileWithProtocol(FileInfo fileInfo) throws Exception {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
-        objectOutputStream.writeObject(info);
+        objectOutputStream.writeObject(fileInfo);
         objectOutputStream.flush();
-        channel.write(ByteBuffer.wrap(byteArrayOutputStream.toByteArray()));
-        System.out.println("send FileInfo");
+        int size = channel.write(ByteBuffer.wrap(byteArrayOutputStream.toByteArray()));
+        System.out.println("send FileInfo - lenght: " + size);
 
         sendFile(path);
 
-        objectOutputStream.close();
-        byteArrayOutputStream.close();
+
     }
 
-    public void sendAllFilesFromDir() throws Exception {
-        ByteBuffer response = ByteBuffer.allocate(4);
+        public void sendAllFilesFromDir() throws Exception {
+        ByteBuffer response = ByteBuffer.allocate(2);
+        ByteBuffer command = ByteBuffer.allocate(4);
         List<Path> paths = getFiles(this.path);
+        long fileInfoObjectSize = 0;
         for (Path path: paths) {
-            sendFileWithProtocol(path);
+            fileInfoObjectSize += new FileInfo(path).getSize();
+        }
+
+        int fileNum = paths.size();
+        int answer = 0;
+
+        for (Path path: paths) {
+            FileInfo file = new FileInfo(path);
+            sendFileWithProtocol(file);
             System.out.println(path.toString());
-            channel.read(response);
-            if (response.array().equals("Done")) {
-                continue;
-            } else {
-                System.out.println("Wait for Response");
-                Thread.sleep(10000);
+            while (answer == 0) {
+                response.clear();
+                answer = channel.read(response);
+                System.out.println("read response");
             }
+            answer = 0;
+            String ansText = new String(response.array());
             response.clear();
+            System.out.println(fileNum);
+            if (!ansText.equals("OK")) {
+                throw new Exception("Нет ответа от сервера");
+            } else if (--fileNum == 0){
+                channel.close();
+            }
         }
     }
 }

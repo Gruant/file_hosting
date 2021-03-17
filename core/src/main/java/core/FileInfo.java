@@ -1,7 +1,7 @@
 package core;
 
-import java.io.IOException;
-import java.io.Serializable;
+import java.io.*;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -61,4 +61,21 @@ public class FileInfo implements Serializable {
     public void setType(FileType type) {
         this.type = type;
     }
+
+//    public long getObjectSize() {
+//        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+//        ObjectOutputStream objectOutputStream = null;
+//        try {
+//            objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        try {
+//            assert objectOutputStream != null;
+//            objectOutputStream.writeObject(this);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        return byteArrayOutputStream.toByteArray();
+//    }
 }

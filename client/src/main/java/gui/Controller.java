@@ -18,7 +18,7 @@ import java.util.ResourceBundle;
 public class Controller implements Initializable {
     public TableView filesTable;
     private SocketChannel channel;
-    private final Path path = Paths.get("/Users/antongrutsin/Desktop/Налоговый вычет");
+    private final Path path = Paths.get("/Users/antongrutsin/Desktop/CB_logo");
 
     public void initialize(URL location, ResourceBundle resources) {
         try {
@@ -70,5 +70,6 @@ public class Controller implements Initializable {
     public void sendFile(Path path) throws Exception {
         Sender sender = new Sender(channel, path);
         sender.sendAllFilesFromDir();
+        channel.socket().close();
     }
 }
