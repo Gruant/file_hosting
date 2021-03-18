@@ -1,20 +1,14 @@
 package gui;
 
-import core.ClientChannel;
-import core.FileInfo;
-import core.Sender;
+import core.*;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.URL;
-import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -27,11 +21,14 @@ public class Controller implements Initializable {
     public TableView filesTable;
     private ClientChannel clientChannel;
     private Sender sender;
-    private final Path path = Paths.get("/Users/antongrutsin/Desktop/CB_logo/");
+    private Receiver receiver;
+    private Path path = Paths.get("TestDir");
+    private Message message;
+
 
     public void initialize(URL location, ResourceBundle resources) {
         try {
-            sendFiles();
+            this.clientChannel = new ClientChannel();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -39,13 +36,32 @@ public class Controller implements Initializable {
         TableColumn<FileInfo, String> typeColumn = new TableColumn<FileInfo, String>("Type");
         typeColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getType().getName()));
         typeColumn.setPrefWidth(50);
-        typeColumn.setSortType(TableColumn.SortType.ASCENDING);
 
         TableColumn<FileInfo, String> fileNameColumn = new TableColumn<>("File Name");
         fileNameColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getFilename()));
+        fileNameColumn.setPrefWidth(600);
 
         filesTable.getColumns().addAll(typeColumn, fileNameColumn);
 
+        try {
+            updateList();
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+
+    }
+
+    public void updateList() throws Exception {
+            connect();
+            FileInfo requestedDir = new FileInfo(path);
+            this.message = new Message(Message.Command.GET_LIST, requestedDir);
+            sender = new Sender(this.clientChannel.getChannel(), this.message);
+            receiver = new Receiver(this.clientChannel.getChannel());
+            sender.sendMessage();
+            List<FileInfo> filesList = receiver.getFilesList();
+            filesTable.getItems().clear();
+            filesTable.getItems().addAll(filesList);
+            filesTable.sort();
     }
 
     public void itemExitAction(ActionEvent actionEvent) {
@@ -55,7 +71,8 @@ public class Controller implements Initializable {
     public void btnDelete(ActionEvent actionEvent) {
     }
 
-    public void btnDownload(ActionEvent actionEvent) {
+    public void btnDownload(ActionEvent actionEvent) throws Exception {
+        connect();
     }
 
     public void btnUpload(ActionEvent actionEvent) {
@@ -68,24 +85,8 @@ public class Controller implements Initializable {
     }
 
     public void connect() throws Exception {
-
-    }
-
-    public void sendFiles() throws Exception {
         this.clientChannel = new ClientChannel();
-        List<Path> paths = getFiles(this.path);
-        for (Path path: paths) {
-            clientChannel.start();
-            sender = new Sender(clientChannel.getChannel(), path);
-            sender.sendAllFilesFromDir();
-        }
     }
 
-    public List<Path> getFiles(Path path) throws IOException {
-        List<Path> paths = Files.walk(this.path)
-                .filter(Files::isRegularFile)
-                .collect(Collectors.toList());
-        System.out.println(Arrays.toString(paths.toArray()));
-        return paths;
-    }
+
 }

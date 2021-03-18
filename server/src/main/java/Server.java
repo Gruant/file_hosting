@@ -1,3 +1,5 @@
+import core.FileInfo;
+import core.Message;
 import core.Receiver;
 
 import java.io.*;
@@ -17,6 +19,7 @@ public class Server {
     private final Selector acceptSelector;
 
     private ServerSocketChannel serverSocket;
+    private Receiver receiver;
 
 
     public Server() throws IOException {
@@ -78,7 +81,7 @@ public class Server {
 
     public void readMessage(SelectionKey key) throws IOException, ClassNotFoundException {
         SocketChannel client = (SocketChannel) key.channel();
-        Receiver receiver = new Receiver(client);
-        receiver.getFile();
+        receiver = new Receiver(client);
+        ServerMessageHandler handler = new ServerMessageHandler(receiver.readMessage(), client);
     }
 }

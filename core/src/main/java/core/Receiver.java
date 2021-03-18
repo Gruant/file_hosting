@@ -1,6 +1,7 @@
 package core;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.nio.ByteBuffer;
@@ -10,16 +11,27 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.EnumSet;
+import java.util.List;
 
 public class Receiver {
     SocketChannel channel;
     ByteBuffer data;
     ByteBuffer buf;
+    Message message;
 
     public Receiver(SocketChannel channel) {
         this.channel = channel;
         this.data = ByteBuffer.allocate(1024);
         this.buf = ByteBuffer.allocate(1024);
+    }
+
+    public Message readMessage() throws IOException, ClassNotFoundException {
+        data.clear();
+        channel.read(data);
+        ObjectInputStream objectInputStream = new ObjectInputStream(new ByteArrayInputStream(data.array()));
+        Message message = (Message) objectInputStream.readObject();
+        objectInputStream.close();
+        return message;
     }
 
     private FileInfo getFileInfo() throws IOException, ClassNotFoundException {
@@ -33,7 +45,7 @@ public class Receiver {
 
     public void getFile() throws IOException, ClassNotFoundException {
         FileInfo fileInfo = getFileInfo();
-        Path path = Paths.get(fileInfo.getFilename());
+        Path path = Paths.get("TestDir" + File.separator + fileInfo.getFilename());
         FileChannel fileChannel = FileChannel.open(path, EnumSet.of(StandardOpenOption.CREATE,
                 StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE));
         buf.clear();
@@ -41,15 +53,27 @@ public class Receiver {
         while (res > 0 || buf.position() > 0) {
             res = channel.read(buf);
             buf.flip();
-            fileChannel.write(buf);
+            if (res > 0) {
+                fileChannel.write(buf);
+            }
             buf.compact();
             System.out.println(res);
         }
-        buf.clear();
         fileChannel.close();
         channel.write(ByteBuffer.wrap("OK".getBytes()));
         channel.close();
     }
+
+    public List<FileInfo> getFilesList() throws IOException, ClassNotFoundException {
+        data.clear();
+        channel.read(data);
+        ObjectInputStream objectInputStream = new ObjectInputStream(new ByteArrayInputStream(data.array()));
+        List<FileInfo> filesList = (List<FileInfo>) objectInputStream.readObject();
+        objectInputStream.close();
+        channel.close();
+        return filesList;
+    }
+
 }
 
 

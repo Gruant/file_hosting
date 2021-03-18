@@ -24,10 +24,12 @@ public class FileInfo implements Serializable {
     private String filename;
     private long size;
     private FileType type;
+    private Path path;
 
     public FileInfo(Path path){
         try {
             this.filename = path.getFileName().toString();
+            this.path = path;
             this.size = Files.size(path);
             this.type = Files.isDirectory(path) ? FileType.DIRECTORY : FileType.FILE;
             if (this.type == FileType.DIRECTORY) {
@@ -62,4 +64,7 @@ public class FileInfo implements Serializable {
         this.type = type;
     }
 
+    public Path getPath() {
+        return path;
+    }
 }
