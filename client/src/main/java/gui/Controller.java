@@ -1,5 +1,6 @@
 package gui;
 
+import core.ClientChannel;
 import core.FileInfo;
 import core.Sender;
 import javafx.application.Platform;
@@ -8,21 +9,29 @@ import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 public class Controller implements Initializable {
     public TableView filesTable;
-    private SocketChannel channel;
-    private final Path path = Paths.get("/Users/antongrutsin/Desktop/CB_logo");
+    private ClientChannel clientChannel;
+    private Sender sender;
+    private final Path path = Paths.get("/Users/antongrutsin/Desktop/CB_logo/");
 
     public void initialize(URL location, ResourceBundle resources) {
         try {
-            connect();
+            sendFiles();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -59,17 +68,24 @@ public class Controller implements Initializable {
     }
 
     public void connect() throws Exception {
-        channel = SocketChannel.open(new InetSocketAddress("localhost", 9999));
-//        Properties prop = new Properties();
-//        InputStream in = getClass().getResourceAsStream("../token.properties");
-//        prop.load(in);
-//        channel.write(ByteBuffer.wrap(prop.getProperty("token").getBytes()));
-        sendFile(path);
+
     }
 
-    public void sendFile(Path path) throws Exception {
-        Sender sender = new Sender(channel, path);
-        sender.sendAllFilesFromDir();
-        channel.socket().close();
+    public void sendFiles() throws Exception {
+        this.clientChannel = new ClientChannel();
+        List<Path> paths = getFiles(this.path);
+        for (Path path: paths) {
+            clientChannel.start();
+            sender = new Sender(clientChannel.getChannel(), path);
+            sender.sendAllFilesFromDir();
+        }
+    }
+
+    public List<Path> getFiles(Path path) throws IOException {
+        List<Path> paths = Files.walk(this.path)
+                .filter(Files::isRegularFile)
+                .collect(Collectors.toList());
+        System.out.println(Arrays.toString(paths.toArray()));
+        return paths;
     }
 }

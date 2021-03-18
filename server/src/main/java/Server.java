@@ -2,6 +2,7 @@ import core.Receiver;
 
 import java.io.*;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.Iterator;
 import java.util.Set;
@@ -77,9 +78,7 @@ public class Server {
 
     public void readMessage(SelectionKey key) throws IOException, ClassNotFoundException {
         SocketChannel client = (SocketChannel) key.channel();
-        Receiver receiver = new Receiver(client, acceptSelector);
+        Receiver receiver = new Receiver(client);
         receiver.getFile();
     }
-
-
 }

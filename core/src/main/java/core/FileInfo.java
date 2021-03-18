@@ -62,20 +62,4 @@ public class FileInfo implements Serializable {
         this.type = type;
     }
 
-//    public long getObjectSize() {
-//        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-//        ObjectOutputStream objectOutputStream = null;
-//        try {
-//            objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        try {
-//            assert objectOutputStream != null;
-//            objectOutputStream.writeObject(this);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        return byteArrayOutputStream.toByteArray();
-//    }
 }
