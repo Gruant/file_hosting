@@ -34,6 +34,9 @@ public class Sender {
         objectOutputStream.writeObject(message);
         objectOutputStream.flush();
         channel.write(ByteBuffer.wrap(byteArrayOutputStream.toByteArray()));
+        objectOutputStream.close();
+        byteArrayOutputStream.close();
+
     }
 
     private List<FileInfo> getFilesFromDir(Path path) throws IOException {

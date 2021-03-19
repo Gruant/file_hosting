@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.channels.SocketChannel;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class ServerMessageHandler {
 
@@ -25,7 +26,8 @@ public class ServerMessageHandler {
 
     private void handle() throws IOException {
         if (message.getCmd() == Message.Command.GET_LIST){
-            Path path = message.getFileInfo().getPath();
+            String stringPath = message.getFileInfo().getStringPath();
+            path = Paths.get(stringPath);
             sender = new Sender(this.channel, path);
             try {
                 sender.sendFilesList();

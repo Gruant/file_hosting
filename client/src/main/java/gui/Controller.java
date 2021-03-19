@@ -52,16 +52,17 @@ public class Controller implements Initializable {
     }
 
     public void updateList() throws Exception {
-            connect();
-            FileInfo requestedDir = new FileInfo(path);
-            this.message = new Message(Message.Command.GET_LIST, requestedDir);
-            sender = new Sender(this.clientChannel.getChannel(), this.message);
-            receiver = new Receiver(this.clientChannel.getChannel());
-            sender.sendMessage();
-            List<FileInfo> filesList = receiver.getFilesList();
-            filesTable.getItems().clear();
-            filesTable.getItems().addAll(filesList);
-            filesTable.sort();
+        connect();
+        FileInfo requestedDir = new FileInfo(path);
+        this.message = new Message(Message.Command.GET_LIST, requestedDir);
+        System.out.println(this.message.toString());
+        sender = new Sender(this.clientChannel.getChannel(), this.message);
+        receiver = new Receiver(this.clientChannel.getChannel());
+        sender.sendMessage();
+        List<FileInfo> filesList = receiver.getFilesList();
+        filesTable.getItems().clear();
+        filesTable.getItems().addAll(filesList);
+        filesTable.sort();
     }
 
     public void itemExitAction(ActionEvent actionEvent) {
@@ -86,6 +87,7 @@ public class Controller implements Initializable {
 
     public void connect() throws Exception {
         this.clientChannel = new ClientChannel();
+        this.clientChannel.start();
     }
 
 

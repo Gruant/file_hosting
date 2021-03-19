@@ -35,4 +35,12 @@ public class Message implements Serializable {
     public Command getCmd() {
         return cmd;
     }
+
+    @Override
+    public String toString() {
+        return "Message{" +
+                "fileInfo=" + fileInfo +
+                ", cmd=" + cmd +
+                '}';
+    }
 }
