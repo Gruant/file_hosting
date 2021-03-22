@@ -1,10 +1,7 @@
-import core.FileInfo;
-import core.Message;
-import core.Receiver;
 
+import core.Receiver;
 import java.io.*;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.Iterator;
 import java.util.Set;

@@ -3,24 +3,8 @@ package core;
 import java.io.Serializable;
 
 public class Message implements Serializable {
-    public enum Command {
-        AUTH(0),
-        GET_LIST(1),
-        SEND_FILE(2),
-        ;
 
-        private int cmd;
-
-        public int getCmd() {
-            return cmd;
-        }
-
-        Command(int cmd) {
-            this.cmd = cmd;
-        }
-    }
-
-    private FileInfo fileInfo;
+    private final FileInfo fileInfo;
     private Command cmd;
 
     public Message(Command cmd, FileInfo fileInfo) {
@@ -34,6 +18,10 @@ public class Message implements Serializable {
 
     public Command getCmd() {
         return cmd;
+    }
+
+    public void setCmd(Command cmd) {
+        this.cmd = cmd;
     }
 
     @Override

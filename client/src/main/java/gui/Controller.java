@@ -7,15 +7,11 @@ import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.stream.Collectors;
 
 public class Controller implements Initializable {
     public TableView filesTable;
@@ -54,7 +50,7 @@ public class Controller implements Initializable {
     public void updateList() throws Exception {
         connect();
         FileInfo requestedDir = new FileInfo(path);
-        this.message = new Message(Message.Command.GET_LIST, requestedDir);
+        this.message = new Message(Command.GET_LIST, requestedDir);
         System.out.println(this.message.toString());
         sender = new Sender(this.clientChannel.getChannel(), this.message);
         receiver = new Receiver(this.clientChannel.getChannel());

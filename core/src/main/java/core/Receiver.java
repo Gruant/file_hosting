@@ -15,14 +15,12 @@ import java.util.List;
 
 public class Receiver {
     SocketChannel channel;
-    ByteBuffer data;
-    ByteBuffer buf;
+    ByteBuffer data = ByteBuffer.allocate(1024);
+    ByteBuffer buf = ByteBuffer.allocate(1024);
     Message message;
 
     public Receiver(SocketChannel channel) {
         this.channel = channel;
-        this.data = ByteBuffer.allocate(1024);
-        this.buf = ByteBuffer.allocate(1024);
     }
 
     public Message readMessage() throws IOException, ClassNotFoundException {
@@ -31,6 +29,7 @@ public class Receiver {
         ObjectInputStream objectInputStream = new ObjectInputStream(new ByteArrayInputStream(data.array()));
         Message message = (Message) objectInputStream.readObject();
         objectInputStream.close();
+        System.out.println("Read message: " + message);
         return message;
     }
 
@@ -70,7 +69,6 @@ public class Receiver {
         ObjectInputStream objectInputStream = new ObjectInputStream(new ByteArrayInputStream(data.array()));
         List<FileInfo> filesList = (List<FileInfo>) objectInputStream.readObject();
         objectInputStream.close();
-        channel.close();
         return filesList;
     }
 

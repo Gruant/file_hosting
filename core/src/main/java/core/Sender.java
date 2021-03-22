@@ -34,6 +34,7 @@ public class Sender {
         objectOutputStream.writeObject(message);
         objectOutputStream.flush();
         channel.write(ByteBuffer.wrap(byteArrayOutputStream.toByteArray()));
+        System.out.println("Send message " + message.toString());
         objectOutputStream.close();
         byteArrayOutputStream.close();
 
@@ -41,6 +42,9 @@ public class Sender {
 
     private List<FileInfo> getFilesFromDir(Path path) throws IOException {
         List<FileInfo> fileInfoList = Files.list(path).map(FileInfo::new).collect(Collectors.toList());
+        for (int i = 0; i < fileInfoList.size(); i++) {
+            System.out.println(fileInfoList.get(i).toString());
+        }
         return fileInfoList;
     }
 
@@ -50,7 +54,8 @@ public class Sender {
         objectOutputStream.writeObject(getFilesFromDir(path));
         objectOutputStream.flush();
         channel.write(ByteBuffer.wrap(byteArrayOutputStream.toByteArray()));
-        channel.close();
+        objectOutputStream.close();
+        byteArrayOutputStream.close();
     }
 
 
