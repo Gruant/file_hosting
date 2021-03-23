@@ -1,5 +1,7 @@
 package core;
 
+import com.google.gson.Gson;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -16,6 +18,7 @@ public class Sender {
     SocketChannel channel;
     Path path;
     Message message;
+    Gson gson = new Gson();
 
 
     public Sender(SocketChannel socketChannel, Path path) {
@@ -29,33 +32,18 @@ public class Sender {
     }
 
     public void sendMessage() throws IOException {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
-        objectOutputStream.writeObject(message);
-        objectOutputStream.flush();
-        channel.write(ByteBuffer.wrap(byteArrayOutputStream.toByteArray()));
-        System.out.println("Send message " + message.toString());
-        objectOutputStream.close();
-        byteArrayOutputStream.close();
-
+        String gMessage = gson.toJson(message);
+        channel.write(ByteBuffer.wrap(gMessage.getBytes()));
     }
 
     private List<FileInfo> getFilesFromDir(Path path) throws IOException {
         List<FileInfo> fileInfoList = Files.list(path).map(FileInfo::new).collect(Collectors.toList());
-        for (int i = 0; i < fileInfoList.size(); i++) {
-            System.out.println(fileInfoList.get(i).toString());
-        }
         return fileInfoList;
     }
 
     public void sendFilesList() throws IOException {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
-        objectOutputStream.writeObject(getFilesFromDir(path));
-        objectOutputStream.flush();
-        channel.write(ByteBuffer.wrap(byteArrayOutputStream.toByteArray()));
-        objectOutputStream.close();
-        byteArrayOutputStream.close();
+        String gMessage = gson.toJson(getFilesFromDir(path));
+        channel.write(ByteBuffer.wrap(gMessage.getBytes()));
     }
 
 
@@ -84,11 +72,8 @@ public class Sender {
     }
 
     private void sendFileInfo(FileInfo fileInfo) throws Exception {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
-        objectOutputStream.writeObject(fileInfo);
-        objectOutputStream.flush();
-        channel.write(ByteBuffer.wrap(byteArrayOutputStream.toByteArray()));
+        String gMessage = gson.toJson(fileInfo);
+        channel.write(ByteBuffer.wrap(gMessage.getBytes()));
     }
 
     public void sendAllFilesFromDir() throws Exception {

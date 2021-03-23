@@ -1,4 +1,3 @@
-
 import core.Command;
 import core.Message;
 import core.Sender;

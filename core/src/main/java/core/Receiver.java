@@ -1,9 +1,11 @@
 package core;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.ObjectInputStream;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
+
+import java.io.*;
+import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
@@ -18,6 +20,8 @@ public class Receiver {
     ByteBuffer data = ByteBuffer.allocate(1024);
     ByteBuffer buf = ByteBuffer.allocate(1024);
     Message message;
+    Gson gson = new Gson();
+    Type itemsListType = new TypeToken<List<FileInfo>>() {}.getType();
 
     public Receiver(SocketChannel channel) {
         this.channel = channel;
@@ -26,20 +30,19 @@ public class Receiver {
     public Message readMessage() throws IOException, ClassNotFoundException {
         data.clear();
         channel.read(data);
-        ObjectInputStream objectInputStream = new ObjectInputStream(new ByteArrayInputStream(data.array()));
-        Message message = (Message) objectInputStream.readObject();
-        objectInputStream.close();
-        System.out.println("Read message: " + message);
-        return message;
+        String gMessage = new String(data.array());
+        JsonReader reader = new JsonReader(new StringReader(gMessage));
+        reader.setLenient(true);
+        return gson.fromJson(reader, Message.class);
     }
 
     private FileInfo getFileInfo() throws IOException, ClassNotFoundException {
         data.clear();
         channel.read(data);
-        ObjectInputStream objectInputStream = new ObjectInputStream(new ByteArrayInputStream(data.array()));
-        FileInfo fileInfo = (FileInfo) objectInputStream.readObject();
-        objectInputStream.close();
-        return fileInfo;
+        String gMessage = new String(data.array());
+        JsonReader reader = new JsonReader(new StringReader(gMessage));
+        reader.setLenient(true);
+        return gson.fromJson(reader, FileInfo.class);
     }
 
     public void getFile() throws IOException, ClassNotFoundException {
@@ -66,10 +69,10 @@ public class Receiver {
     public List<FileInfo> getFilesList() throws IOException, ClassNotFoundException {
         data.clear();
         channel.read(data);
-        ObjectInputStream objectInputStream = new ObjectInputStream(new ByteArrayInputStream(data.array()));
-        List<FileInfo> filesList = (List<FileInfo>) objectInputStream.readObject();
-        objectInputStream.close();
-        return filesList;
+        String gMessage = new String(data.array());
+        JsonReader reader = new JsonReader(new StringReader(gMessage));
+        reader.setLenient(true);
+        return new Gson().fromJson(reader,itemsListType);
     }
 
 }

@@ -7,10 +7,18 @@ import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+
+import java.awt.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Properties;
 import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
@@ -84,7 +92,36 @@ public class Controller implements Initializable {
     public void connect() throws Exception {
         this.clientChannel = new ClientChannel();
         this.clientChannel.start();
+
     }
+
+    public void auth() throws IOException {
+        Properties props = new Properties();
+        props.load(new FileInputStream("token.properties"));
+        String token = props.getProperty("token");
+
+    }
+
+//    public static void openContainingFolder(String path) throws IOException {
+//        if (!Files.exists(Paths.get(path))){
+//            File folder = new File(path);
+//            if (!folder.exists()) {
+//                folder.mkdirs();
+//            }
+//        }
+//
+//        File folder = new File(path);
+//        if(!folder.exists()){
+//
+//        }
+//        openFolder(folder);
+//    }
+//
+//    public static void openFolder(File folder) throws IOException {
+//        if (Desktop.isDesktopSupported()) {
+//            Desktop.getDesktop().open(folder);
+//        }
+//    }
 
 
 }
