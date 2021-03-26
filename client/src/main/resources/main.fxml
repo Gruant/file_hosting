@@ -13,7 +13,8 @@
         </Menu>
     </MenuBar>
     <HBox spacing="5.0">
-        <TextField editable="false" opacity="0.0" HBox.hgrow="ALWAYS" />
+        <Button text="Back" onAction="#btnBack"/>
+        <TextField fx:id="pathField" editable="false" HBox.hgrow="ALWAYS" />
         <Button text="Авторизоваться" onAction="#btnAuth"/>
       <padding>
          <Insets left="5.0" />
@@ -21,16 +22,16 @@
     </HBox>
     <TableView fx:id="filesTable" VBox.vgrow="ALWAYS" />
     <HBox alignment="center" spacing="10">
-        <Button text="Upload" onAction="#btnUpload">
+        <Button text="Upload" focusTraversable="false" onAction="#btnUpload">
 
         </Button>
-        <Button text="Download" onAction="#btnDownload">
+        <Button text="Download" focusTraversable="false" onAction="#btnDownload">
 
         </Button>
-        <Button text="Delete" onAction="#btnDelete">
+        <Button text="Delete" focusTraversable="false" onAction="#btnDelete">
             
         </Button>
-        <Button text="Create Folder" onAction="#btnFldCreate">
+        <Button text="Create Folder" focusTraversable="false" onAction="#btnFldCreate">
 
         </Button>
       <padding>

@@ -4,11 +4,11 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class FileInfo implements Serializable {
+public class FileInfo{
 
-    private String filename;
+    private final String filename;
     private long size;
-    private FileType type;
+    private final FileType type;
     private final String path;
 
     public FileInfo(Path path){
@@ -29,24 +29,12 @@ public class FileInfo implements Serializable {
         return filename;
     }
 
-    public void setFilename(String filename) {
-        this.filename = filename;
-    }
-
     public long getSize() {
         return size;
     }
 
-    public void setSize(long size) {
-        this.size = size;
-    }
-
     public FileType getType() {
         return type;
-    }
-
-    public void setType(FileType type) {
-        this.type = type;
     }
 
     public String getStringPath() {

@@ -3,7 +3,9 @@ package core;
 public enum Command {
     AUTH(0),
     GET_LIST(1),
-    SEND_FILE(2),
+    UPLOAD(2),
+    DOWNLOAD(3),
+    MAKE_DIR(4),
     ;
 
     private int cmd;

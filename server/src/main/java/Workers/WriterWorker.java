@@ -1,4 +1,4 @@
-package core;
+package Workers;
 
 public class WriterWorker {
 }

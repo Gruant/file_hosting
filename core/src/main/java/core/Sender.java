@@ -2,9 +2,7 @@ package core;
 
 import com.google.gson.Gson;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
@@ -31,9 +29,11 @@ public class Sender {
         this.message = message;
     }
 
+
     public void sendMessage() throws IOException {
         String gMessage = gson.toJson(message);
         channel.write(ByteBuffer.wrap(gMessage.getBytes()));
+        System.out.println(message);
     }
 
     private List<FileInfo> getFilesFromDir(Path path) throws IOException {
@@ -90,6 +90,5 @@ public class Sender {
         if (!ansText.equals("OK")) {
             throw new Exception("Не удалось загрузить файл");
         }
-        channel.close();
     }
 }

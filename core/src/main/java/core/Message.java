@@ -1,11 +1,9 @@
 package core;
 
-import java.io.Serializable;
-
-public class Message implements Serializable {
+public class Message {
 
     private final FileInfo fileInfo;
-    private Command cmd;
+    private final Command cmd;
 
     public Message(Command cmd, FileInfo fileInfo) {
         this.cmd = cmd;
@@ -18,10 +16,6 @@ public class Message implements Serializable {
 
     public Command getCmd() {
         return cmd;
-    }
-
-    public void setCmd(Command cmd) {
-        this.cmd = cmd;
     }
 
     @Override
