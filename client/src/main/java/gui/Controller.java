@@ -9,16 +9,20 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.MouseEvent;
+import javafx.stage.FileChooser;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.ResourceBundle;
 
@@ -28,7 +32,7 @@ public class Controller implements Initializable {
     private ClientChannel clientChannel;
     private Sender sender;
     private Receiver receiver;
-    private Path root = Paths.get("TestDir");
+    private final Path root = Paths.get("TestDir");
     private Path currentPath = root;
     private Message message;
 
@@ -95,6 +99,7 @@ public class Controller implements Initializable {
     }
 
     public void itemExitAction(ActionEvent actionEvent) {
+        this.clientChannel.close();
         Platform.exit();
     }
 
@@ -111,35 +116,65 @@ public class Controller implements Initializable {
     }
 
     public void btnDownload(ActionEvent actionEvent) throws Exception {
-//        String home = System.getProperty("user.home");
-//        File file = new File(home+"/Downloads/" + fileName + ".txt");
-
+        String home = System.getProperty("user.home");
+        String downloadPath = home + "Download/";
+        List<Path> paths;
         connect();
         Path path = Paths.get(getSelectedPath());
-        Message message = new Message(Command.DOWNLOAD, new FileInfo(path));
+        message = new Message(Command.GET_FILES_PATH, new FileInfo(path));
         sender = new Sender(this.clientChannel.getChannel(), message);
         sender.sendMessage();
+        receiver = new Receiver(this.clientChannel.getChannel());
+        paths = receiver.getAllFilesList();
+//        for (Path p: paths) {
+//            clientChannel.start();
+//            message = new Message(Command.DOWNLOAD, new FileInfo(p));
+//            sender = new Sender(this.clientChannel.getChannel(), message);
+//            sender.sendMessage();
+//            receiver = new Receiver(clientChannel.getChannel());
+//            receiver.getFile(downloadPath);
+        }
 
 
 
-    }
 
     public void btnUpload(ActionEvent actionEvent) throws Exception {
-        connect();
-//        Взять файл из кнопки
-        sender = new Sender(this.clientChannel.getChannel());
-        List<Path> paths = sender.getFiles();
-        for (Path path: paths) {
-            clientChannel.start();
-            sender = new Sender(clientChannel.getChannel(), path);
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open Resource File");
+        List<File> selectedFile = fileChooser.showOpenMultipleDialog(null);
+        for (File file: selectedFile) {
+            this.clientChannel.start();
+            Message message = new Message(Command.UPLOAD, new FileInfo(currentPath));
+            sender = new Sender(this.clientChannel.getChannel(), message);
+            sender.sendMessage();
+            sender = new Sender(clientChannel.getChannel(), Paths.get(file.getPath()));
             sender.sendAllFilesFromDir();
+            this.clientChannel.close();
         }
+        updateList(currentPath);
     }
 
     public void btnAuth(ActionEvent actionEvent) {
     }
 
-    public void btnFldCreate(ActionEvent actionEvent) {
+    public void btnFldCreate(ActionEvent actionEvent) throws Exception {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Inter folder name");
+        dialog.setContentText("Please enter folder name:");
+        dialog.showAndWait();
+        String result = null;
+        result = dialog.getResult();
+        if (result != null) {
+            dialog.close();
+            System.out.println(result);
+            this.clientChannel.start();
+            Message message = new Message(Command.MAKE_DIR, new FileInfo(currentPath), result);
+            sender = new Sender(this.clientChannel.getChannel(), message);
+            System.out.println(message.toString());
+            sender.sendMessage();
+            this.clientChannel.close();
+        }
+        updateList(currentPath);
     }
 
     public void connect() throws Exception {

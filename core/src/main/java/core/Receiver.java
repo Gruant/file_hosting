@@ -20,9 +20,8 @@ public class Receiver {
     private final SocketChannel channel;
     private final ByteBuffer data = ByteBuffer.allocate(1024);
     private final ByteBuffer buf = ByteBuffer.allocate(1024);
-    private Message message;
-    private final Gson gson = new Gson();
     private final Type itemsListType = new TypeToken<List<FileInfo>>(){}.getType();
+    private final Type pathsListType = new TypeToken<List<Path>>(){}.getType();
 
     public Receiver(SocketChannel channel) {
         this.channel = channel;
@@ -32,9 +31,10 @@ public class Receiver {
         data.clear();
         channel.read(data);
         String gMessage = new String(data.array());
+        System.out.println(gMessage);
         JsonReader reader = new JsonReader(new StringReader(gMessage));
         reader.setLenient(true);
-        return gson.fromJson(reader, Message.class);
+        return new Gson().fromJson(reader, Message.class);
     }
 
     private FileInfo getFileInfo() throws IOException{
@@ -43,14 +43,16 @@ public class Receiver {
         String gMessage = new String(data.array());
         JsonReader reader = new JsonReader(new StringReader(gMessage));
         reader.setLenient(true);
-        return gson.fromJson(reader, FileInfo.class);
+        System.out.println(gMessage);
+        return new Gson().fromJson(reader, FileInfo.class);
     }
 
-    public void getFile() throws IOException{
+    public void getFile(Path dirToWrite) throws IOException{
         FileInfo fileInfo = getFileInfo();
+        System.out.println(fileInfo.toString());
         Path path = Paths.get(fileInfo.getStringPath());
-        mkDirs(path, fileInfo.getFilename());
-        FileChannel fileChannel = FileChannel.open(path, EnumSet.of(StandardOpenOption.CREATE,
+        System.out.println(path.getFileName());
+        FileChannel fileChannel = FileChannel.open(dirToWrite.resolve(path.getFileName()), EnumSet.of(StandardOpenOption.CREATE,
                 StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE));
         buf.clear();
         int res = 1;
@@ -78,13 +80,28 @@ public class Receiver {
         }
     }
 
+    public String getDir() throws IOException {
+        data.clear();
+        channel.read(data);
+        return new String(data.array());
+    }
+
     public List<FileInfo> getFilesList() throws IOException{
         data.clear();
         channel.read(data);
         String gMessage = new String(data.array());
         JsonReader reader = new JsonReader(new StringReader(gMessage));
         reader.setLenient(true);
-        return new Gson().fromJson(reader,itemsListType);
+        return new Gson().fromJson(reader, itemsListType);
+    }
+
+    public List<Path> getAllFilesList() throws IOException {
+        data.clear();
+        channel.read(data);
+        String gMessage = new String(data.array());
+        JsonReader reader = new JsonReader(new StringReader(gMessage));
+        reader.setLenient(true);
+        return new Gson().fromJson(reader, pathsListType);
     }
 
 }

@@ -79,6 +79,6 @@ public class Server {
     public void readMessage(SelectionKey key) throws IOException, ClassNotFoundException {
         SocketChannel client = (SocketChannel) key.channel();
         receiver = new Receiver(client);
-        ServerMessageHandler handler = new ServerMessageHandler(receiver.readMessage(), client);
+        new ServerMessageHandler(receiver.readMessage(), client);
     }
 }
