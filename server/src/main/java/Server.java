@@ -28,7 +28,7 @@ public class Server {
     }
 
 
-    public static void main(String[] args) throws IOException, ClassNotFoundException {
+    public static void main(String[] args) throws Exception {
         try {
             new Server().start();
         } finally {
@@ -37,14 +37,14 @@ public class Server {
         }
     }
 
-    public void start() throws IOException, ClassNotFoundException {
+    public void start() throws Exception {
         while (true) {
             acceptSelector(acceptSelector);
         }
     }
 
 
-    public void acceptSelector (Selector selector) throws IOException, ClassNotFoundException {
+    public void acceptSelector (Selector selector) throws Exception {
         selector.select();
 
         Set<SelectionKey> selectionKeys = acceptSelector.selectedKeys();
@@ -76,7 +76,7 @@ public class Server {
         System.out.println("User is connect");
     }
 
-    public void readMessage(SelectionKey key) throws IOException, ClassNotFoundException {
+    public void readMessage(SelectionKey key) throws Exception {
         SocketChannel client = (SocketChannel) key.channel();
         receiver = new Receiver(client);
         new ServerMessageHandler(receiver.readMessage(), client);

@@ -21,10 +21,7 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.ResourceBundle;
+import java.util.*;
 
 public class Controller implements Initializable {
     public TableView filesTable;
@@ -35,6 +32,8 @@ public class Controller implements Initializable {
     private final Path root = Paths.get("TestDir");
     private Path currentPath = root;
     private Message message;
+    private final String home = System.getProperty("user.home");
+    private final String downloadPath = home + File.separator + "Desktop/FileHosting" + File.separator;
 
 
     public void initialize(URL location, ResourceBundle resources) {
@@ -80,7 +79,7 @@ public class Controller implements Initializable {
     }
 
     public void updateList(Path path) throws Exception {
-        connect();
+        this.clientChannel.start();
 
         FileInfo requestedDir = new FileInfo(path);
         this.message = new Message(Command.GET_LIST, requestedDir);
@@ -112,42 +111,56 @@ public class Controller implements Initializable {
     }
 
 
-    public void btnDelete(ActionEvent actionEvent) {
+    public void btnDelete(ActionEvent actionEvent) throws Exception {
+        this.clientChannel.start();
+        Path path = Paths.get(getSelectedPath());
+        Message message = new Message(Command.DELETE, new FileInfo(path));
+        sender = new Sender(this.clientChannel.getChannel(), message);
+        sender.sendMessage();
+        System.out.println("Отправлено сообщение " + message);
+        updateList(currentPath);
     }
 
     public void btnDownload(ActionEvent actionEvent) throws Exception {
-        String home = System.getProperty("user.home");
-        String downloadPath = home + "Download/";
-        List<Path> paths;
-        connect();
+        List<String> paths;
         Path path = Paths.get(getSelectedPath());
-        message = new Message(Command.GET_FILES_PATH, new FileInfo(path));
-        sender = new Sender(this.clientChannel.getChannel(), message);
-        sender.sendMessage();
-        receiver = new Receiver(this.clientChannel.getChannel());
-        paths = receiver.getAllFilesList();
-//        for (Path p: paths) {
-//            clientChannel.start();
-//            message = new Message(Command.DOWNLOAD, new FileInfo(p));
-//            sender = new Sender(this.clientChannel.getChannel(), message);
-//            sender.sendMessage();
-//            receiver = new Receiver(clientChannel.getChannel());
-//            receiver.getFile(downloadPath);
+        Message message = new Message(Command.GET_FILES_PATH, new FileInfo(path));
+
+        if(!Files.exists(Paths.get(downloadPath))){
+            Files.createDirectory(Paths.get(downloadPath));
         }
 
+        this.clientChannel.start();
+        sender = new Sender(this.clientChannel.getChannel(), message);
+        sender.sendMessage();
+        System.out.println("Отправлено сообщение " + message);
+        receiver = new Receiver(this.clientChannel.getChannel());
+        paths = receiver.getAllFilesList();
+        this.clientChannel.close();
 
-
+        for (String p : paths) {
+            this.clientChannel.start();
+            Message downloadMessage = new Message(Command.DOWNLOAD, new FileInfo(Paths.get(p)));
+            sender = new Sender(this.clientChannel.getChannel(), downloadMessage);
+            sender.sendMessage();
+            receiver = new Receiver(clientChannel.getChannel());
+            receiver.getFile(Paths.get(downloadPath));
+            this.clientChannel.close();
+        }
+    }
 
     public void btnUpload(ActionEvent actionEvent) throws Exception {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open Resource File");
         List<File> selectedFile = fileChooser.showOpenMultipleDialog(null);
+        System.out.println("Список отправляемых файлов: " + Arrays.toString(selectedFile.toArray()));
         for (File file: selectedFile) {
             this.clientChannel.start();
             Message message = new Message(Command.UPLOAD, new FileInfo(currentPath));
             sender = new Sender(this.clientChannel.getChannel(), message);
             sender.sendMessage();
             sender = new Sender(clientChannel.getChannel(), Paths.get(file.getPath()));
+            System.out.println("Send file path" + file.getPath());
             sender.sendAllFilesFromDir();
             this.clientChannel.close();
         }
@@ -167,12 +180,11 @@ public class Controller implements Initializable {
         if (result != null) {
             dialog.close();
             System.out.println(result);
-            this.clientChannel.start();
+            connect();
             Message message = new Message(Command.MAKE_DIR, new FileInfo(currentPath), result);
             sender = new Sender(this.clientChannel.getChannel(), message);
             System.out.println(message.toString());
             sender.sendMessage();
-            this.clientChannel.close();
         }
         updateList(currentPath);
     }
@@ -196,23 +208,4 @@ public class Controller implements Initializable {
             updateList(upperPath);
         }
     }
-
-//    public static void openContainingFolder(Path path) throws IOException {
-//        Path dirPath = Paths.get(path.toString().replaceFirst(String.valueOf(path.getFileName()), ""));
-//        System.out.println(dirPath.toString());
-//        if (!Files.exists(dirPath)){
-//            File folder = dirPath.toFile();
-//            if (!folder.exists()) {
-//                folder.mkdirs();
-//            }
-//        }
-//    }
-//
-//    public static void openFolder(File folder) throws IOException {
-//        if (Desktop.isDesktopSupported()) {
-//            Desktop.getDesktop().open(folder);
-//        }
-//    }
-
-
 }

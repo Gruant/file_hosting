@@ -6,10 +6,13 @@ import java.nio.channels.SocketChannel;
 
 public class ClientChannel {
     private SocketChannel channel;
+    private Receiver receiver;
+    private Sender sender;
 
     public void start() {
                 try {
                     channel = SocketChannel.open(new InetSocketAddress("localhost", 9999));
+
 
                 } catch (IOException e) {
                     e.printStackTrace();

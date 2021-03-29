@@ -3,26 +3,28 @@ import core.Message;
 import core.Receiver;
 import core.Sender;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 public class ServerMessageHandler {
 
     private final Message message;
     private final SocketChannel channel;
 
-    public ServerMessageHandler(Message message, SocketChannel channel) throws IOException{
+    public ServerMessageHandler(Message message, SocketChannel channel) throws Exception {
         this.message = message;
         this.channel = channel;
-        handle();
         System.out.println(message.toString());
+        handle();
     }
 
 
-    private void handle() throws IOException {
+    private void handle() throws Exception {
         if (message.getCmd() == Command.GET_LIST){
             String stringPath = message.getFileInfo().getStringPath();
             Path path = Paths.get(stringPath);
@@ -39,6 +41,7 @@ public class ServerMessageHandler {
             Path currentPath = Paths.get(message.getFileInfo().getStringPath());
             Receiver receiver = new Receiver(this.channel);
             receiver.getFile(currentPath);
+            channel.close();
         }
 
         if(message.getCmd() == Command.MAKE_DIR) {
@@ -48,17 +51,53 @@ public class ServerMessageHandler {
             if(!Files.exists(dir)){
                 Files.createDirectory(currentPath.resolve(dir));
             }
+        }
+
+        if(message.getCmd().equals(Command.GET_FILES_PATH)){
+            String stringPath = message.getFileInfo().getStringPath();
+            System.out.println(stringPath);
+            Path path = Paths.get(stringPath);
+            Sender sender = new Sender(this.channel, path);
+            sender.sendAllFilesList();
             channel.close();
         }
 
-//        if(message.getCmd().equals(Command.GET_FILES_PATH)){
-//            String stringPath = message.getFileInfo().getStringPath();
-//            System.out.println(stringPath);
-//            Path path = Paths.get(stringPath);
-//            Sender sender = new Sender(this.channel, path);
-//            sender.sendAllFilesList();
-//            channel.close();
-//        }
+        if(message.getCmd().equals(Command.DOWNLOAD)){
+            String stringPath = message.getFileInfo().getStringPath();
+            System.out.println("Отправлен файл: " + stringPath);
+            Path path = Paths.get(stringPath);
+            Sender sender = new Sender(this.channel, path);
+            sender.sendAllFilesFromDir();
+            channel.close();
+        }
+
+        if(message.getCmd().equals(Command.DELETE)){
+
+            String stringPath = message.getFileInfo().getStringPath();
+            File file = new File(stringPath);
+            rmFile(file);
+            channel.close();
+        }
     }
 
+    public void rmFile(File file) {
+        if (file.isDirectory()) {
+            File[] list = file.listFiles();
+            if (list != null) {
+                for (int i = 0; i < list.length; i++) {
+                    File tmpF = list[i];
+                    if (tmpF.isDirectory()) {
+                        rmFile(tmpF);
+                    }
+                    tmpF.delete();
+                }
+            }
+            if (!file.delete()) {
+                System.out.println("can't delete folder : " + file);
+            }
+        }
+        if (file.isFile()){
+            file.delete();
+        }
+    }
 }
