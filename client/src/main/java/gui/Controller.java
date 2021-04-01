@@ -4,20 +4,17 @@ import core.*;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
-import javafx.scene.input.MouseEvent;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -29,11 +26,8 @@ public class Controller implements Initializable {
     private ClientChannel clientChannel;
     private Sender sender;
     private Receiver receiver;
-    private final Path root = Paths.get("TestDir");
-    private Path currentPath = root;
-    private Message message;
-    private final String home = System.getProperty("user.home");
-    private final String downloadPath = home + File.separator + "Desktop/FileHosting" + File.separator;
+    private final Path ROOT = Paths.get("TestDir");
+    private Path currentPath = ROOT;
 
 
     public void initialize(URL location, ResourceBundle resources) {
@@ -54,24 +48,21 @@ public class Controller implements Initializable {
         filesTable.getColumns().addAll(typeColumn, fileNameColumn);
         filesTable.getSortOrder().addAll(typeColumn);
 
-        filesTable.setOnMouseClicked(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                if (event.getClickCount() == 2) {
-                    Path path = Paths.get(((FileInfo) filesTable.getSelectionModel().getSelectedItem()).getStringPath());
-                    if(Files.isDirectory(path)){
-                        try {
-                            updateList(path);
-                        } catch (Exception exception) {
-                            exception.printStackTrace();
-                        }
+        filesTable.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2) {
+                Path path = Paths.get(((FileInfo) filesTable.getSelectionModel().getSelectedItem()).getStringPath());
+                if(Files.isDirectory(path)){
+                    try {
+                        updateList(path);
+                    } catch (Exception exception) {
+                        exception.printStackTrace();
                     }
                 }
             }
         });
 
         try {
-            updateList(root);
+            updateList(ROOT);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -81,10 +72,11 @@ public class Controller implements Initializable {
     public void updateList(Path path) throws Exception {
         this.clientChannel.start();
 
-        FileInfo requestedDir = new FileInfo(path);
-        this.message = new Message(Command.GET_LIST, requestedDir);
 
-        sender = new Sender(this.clientChannel.getChannel(), this.message);
+        FileInfo requestedDir = new FileInfo(path);
+        Message message = new Message(Command.GET_LIST, requestedDir);
+
+        sender = new Sender(this.clientChannel.getChannel(), message);
         receiver = new Receiver(this.clientChannel.getChannel());
         sender.sendMessage();
 
@@ -102,14 +94,9 @@ public class Controller implements Initializable {
         Platform.exit();
     }
 
-    public String getSelectedFileName() {
-        return ((FileInfo) filesTable.getSelectionModel().getSelectedItem()).getFilename();
-    }
-
     public String getSelectedPath() {
         return ((FileInfo) filesTable.getSelectionModel().getSelectedItem()).getStringPath();
     }
-
 
     public void btnDelete(ActionEvent actionEvent) throws Exception {
         this.clientChannel.start();
@@ -121,31 +108,33 @@ public class Controller implements Initializable {
         updateList(currentPath);
     }
 
-    public void btnDownload(ActionEvent actionEvent) throws Exception {
+    public void btnDownload() throws Exception {
         List<String> paths;
         Path path = Paths.get(getSelectedPath());
         Message message = new Message(Command.GET_FILES_PATH, new FileInfo(path));
 
-        if(!Files.exists(Paths.get(downloadPath))){
-            Files.createDirectory(Paths.get(downloadPath));
-        }
+        DirectoryChooser dirToSave = new DirectoryChooser();
+        dirToSave.setTitle("Выберите папку для загрузки файла");
+
+        File downloadDir = dirToSave.showDialog(null);
 
         this.clientChannel.start();
         sender = new Sender(this.clientChannel.getChannel(), message);
         sender.sendMessage();
-        System.out.println("Отправлено сообщение " + message);
         receiver = new Receiver(this.clientChannel.getChannel());
         paths = receiver.getAllFilesList();
         this.clientChannel.close();
 
         for (String p : paths) {
             this.clientChannel.start();
-            Message downloadMessage = new Message(Command.DOWNLOAD, new FileInfo(Paths.get(p)));
+            FileInfo fileInfo = new FileInfo(Paths.get(p));
+            mkDirs(Paths.get(fileInfo.getStringPath()), fileInfo.getFilename());
+            Message downloadMessage = new Message(Command.DOWNLOAD, fileInfo);
+            System.out.println(fileInfo.toString());
             sender = new Sender(this.clientChannel.getChannel(), downloadMessage);
             sender.sendMessage();
             receiver = new Receiver(clientChannel.getChannel());
-            receiver.getFile(Paths.get(downloadPath));
-            this.clientChannel.close();
+            receiver.getFile(Paths.get(downloadDir.getPath()), Paths.get(fileInfo.getFilename()), fileInfo.getSize());
         }
     }
 
@@ -153,21 +142,18 @@ public class Controller implements Initializable {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open Resource File");
         List<File> selectedFile = fileChooser.showOpenMultipleDialog(null);
-        System.out.println("Список отправляемых файлов: " + Arrays.toString(selectedFile.toArray()));
+
         for (File file: selectedFile) {
             this.clientChannel.start();
-            Message message = new Message(Command.UPLOAD, new FileInfo(currentPath));
+            FileInfo fileInfo = new FileInfo(Paths.get(file.getPath()));
+            Message message = new Message(Command.UPLOAD, new FileInfo(currentPath), fileInfo.getFilename(), fileInfo.getSize());
             sender = new Sender(this.clientChannel.getChannel(), message);
             sender.sendMessage();
             sender = new Sender(clientChannel.getChannel(), Paths.get(file.getPath()));
             System.out.println("Send file path" + file.getPath());
             sender.sendAllFilesFromDir();
-            this.clientChannel.close();
         }
         updateList(currentPath);
-    }
-
-    public void btnAuth(ActionEvent actionEvent) {
     }
 
     public void btnFldCreate(ActionEvent actionEvent) throws Exception {
@@ -189,23 +175,60 @@ public class Controller implements Initializable {
         updateList(currentPath);
     }
 
-    public void connect() throws Exception {
-        this.clientChannel = new ClientChannel();
-        this.clientChannel.start();
-
-    }
-
-    public void auth() throws IOException {
-        Properties props = new Properties();
-        props.load(new FileInputStream("token.properties"));
-        String token = props.getProperty("token");
-
-    }
 
     public void btnBack(ActionEvent actionEvent) throws Exception {
         Path upperPath = Paths.get(pathField.getText()).getParent();
         if (upperPath != null) {
             updateList(upperPath);
         }
+    }
+
+    private void mkDirs(Path path, String fileName) {
+        Path dirPath = Paths.get(path.toString().replaceFirst(fileName, ""));
+        if (!Files.exists(dirPath)){
+            File folder = path.toFile();
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+        }
+    }
+
+    public void connect() throws Exception {
+        this.clientChannel.start();
+        String response = isAuthByToken();
+        if(response.equals("false")){
+            this.clientChannel.close();
+        }
+        System.out.println(this.clientChannel.toString());
+
+    }
+
+    private String isAuthByToken() throws IOException {
+        String token = getToken();
+        Message message = new Message(Command.AUTH, token);
+        sender = new Sender(this.clientChannel.getChannel(), message);
+        sender.sendMessage();
+        receiver = new Receiver(this.clientChannel.getChannel());
+        String response =  receiver.getAuthResponse();
+        return response;
+    }
+
+    private String getToken() throws IOException {
+        Properties props = new Properties();
+        URL url = ClassLoader.getSystemResource("token.properties");
+        props.load(url.openStream());
+        return props.getProperty("token");
+    }
+
+
+    private void setToken(String token){
+
+    }
+
+    public boolean authByLoginPassword(){
+//        отправить объект user
+//        получить объект user
+//        записать папку и токен
+        return false;
     }
 }

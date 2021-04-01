@@ -6,29 +6,25 @@ import java.nio.channels.SocketChannel;
 
 public class ClientChannel {
     private SocketChannel channel;
-    private Receiver receiver;
-    private Sender sender;
 
     public void start() {
                 try {
                     channel = SocketChannel.open(new InetSocketAddress("localhost", 9999));
-
-
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
     }
 
-    public SocketChannel getChannel() {
+    public SocketChannel getChannel(){
         return channel;
     }
 
     public void close(){
         try {
             channel.close();
-        }catch (IOException  e){
+            System.out.println("Канал закрыт");
+        }catch (IOException e){
             e.printStackTrace();
         }
-
     }
 }

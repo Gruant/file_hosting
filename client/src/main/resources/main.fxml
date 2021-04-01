@@ -15,7 +15,6 @@
     <HBox spacing="5.0">
         <Button text="Back" onAction="#btnBack"/>
         <TextField fx:id="pathField" editable="false" HBox.hgrow="ALWAYS" />
-        <Button text="Авторизоваться" onAction="#btnAuth"/>
       <padding>
          <Insets left="5.0" />
       </padding>

@@ -10,8 +10,8 @@ import java.util.concurrent.Executors;
 
 public class Server {
 
-    private static final ExecutorService READ_THREAD_POOL = Executors.newFixedThreadPool(2);
-    private static final ExecutorService WRITE_THREAD_POOL = Executors.newFixedThreadPool(2);
+    private static final ExecutorService READ_THREAD_POOL = Executors.newFixedThreadPool(4);
+//    private static final ExecutorService WRITE_THREAD_POOL = Executors.newFixedThreadPool(2);
 
     private final Selector acceptSelector;
 
@@ -33,7 +33,6 @@ public class Server {
             new Server().start();
         } finally {
             READ_THREAD_POOL.shutdownNow();
-            WRITE_THREAD_POOL.shutdownNow();
         }
     }
 

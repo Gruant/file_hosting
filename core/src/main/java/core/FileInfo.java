@@ -7,7 +7,7 @@ import java.nio.file.Path;
 public class FileInfo{
 
     private final String filename;
-    private long size;
+    private final long size;
     private final FileType type;
     private final String path;
 
@@ -17,9 +17,6 @@ public class FileInfo{
             this.path = path.toString();
             this.size = Files.size(path);
             this.type = Files.isDirectory(path) ? FileType.DIRECTORY : FileType.FILE;
-            if (this.type == FileType.DIRECTORY) {
-                this.size = 0;
-            }
         } catch (IOException e) {
             throw new RuntimeException("Can't get a info from file");
         }
@@ -29,16 +26,16 @@ public class FileInfo{
         return filename;
     }
 
-    public long getSize() {
-        return size;
-    }
-
     public FileType getType() {
         return type;
     }
 
     public String getStringPath() {
         return path;
+    }
+
+    public long getSize() {
+        return size;
     }
 
     @Override

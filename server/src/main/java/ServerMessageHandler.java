@@ -1,3 +1,4 @@
+import Connection.Database;
 import core.Command;
 import core.Message;
 import core.Receiver;
@@ -15,6 +16,7 @@ public class ServerMessageHandler {
 
     private final Message message;
     private final SocketChannel channel;
+    private final Database db = new Database();
 
     public ServerMessageHandler(Message message, SocketChannel channel) throws Exception {
         this.message = message;
@@ -25,6 +27,17 @@ public class ServerMessageHandler {
 
 
     private void handle() throws Exception {
+
+        if (message.getCmd() == Command.AUTH){
+            String token = message.getToken();
+            Database.connect();
+            Boolean isUser = Database.authByToken(token);
+            Database.disconnect();
+            System.out.println(isUser);
+            Sender sender = new Sender(this.channel);
+            sender.sendAuthResponse(isUser.toString());
+        }
+
         if (message.getCmd() == Command.GET_LIST){
             String stringPath = message.getFileInfo().getStringPath();
             Path path = Paths.get(stringPath);
@@ -39,9 +52,9 @@ public class ServerMessageHandler {
 
         if(message.getCmd() == Command.UPLOAD){
             Path currentPath = Paths.get(message.getFileInfo().getStringPath());
+            Path uploadedFileName = Paths.get(message.getAdditional());
             Receiver receiver = new Receiver(this.channel);
-            receiver.getFile(currentPath);
-            channel.close();
+            receiver.getFile(currentPath, uploadedFileName, message.getFileSize());
         }
 
         if(message.getCmd() == Command.MAKE_DIR) {
@@ -68,7 +81,6 @@ public class ServerMessageHandler {
             Path path = Paths.get(stringPath);
             Sender sender = new Sender(this.channel, path);
             sender.sendAllFilesFromDir();
-            channel.close();
         }
 
         if(message.getCmd().equals(Command.DELETE)){

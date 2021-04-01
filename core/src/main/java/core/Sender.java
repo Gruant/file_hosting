@@ -1,15 +1,24 @@
 package core;
 
 import com.google.gson.Gson;
+import com.google.gson.internal.bind.util.ISO8601Utils;
 import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
+import org.w3c.dom.ls.LSOutput;
+import sun.text.normalizer.UTF16;
+
 import java.io.IOException;
+import java.io.StringReader;
 import java.lang.reflect.Type;
+import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.SQLOutput;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,6 +31,9 @@ public class Sender {
     private final Type pathsListType = new TypeToken<List<Path>>(){}.getType();
     private final Type fileInfo = new TypeToken<FileInfo>(){}.getType();
 
+    public Sender(SocketChannel socketChannel){
+        this.channel = socketChannel;
+    }
 
     public Sender(SocketChannel socketChannel, Path path) {
         this.channel = socketChannel;
@@ -70,7 +82,9 @@ public class Sender {
     }
 
 
-    private void sendFile(Path path) throws IOException {
+    private void sendFile(Path path){
+        ByteBuffer response = ByteBuffer.allocate(2);
+        Boolean isAnswer = false;
         try {
             FileChannel fileChannel = FileChannel.open(path);
             System.out.println("Send file: " + path);
@@ -78,43 +92,45 @@ public class Sender {
             int res = 1;
             while (res > 0){
                 res = fileChannel.read(buf);
+                System.out.println(res);
                 buf.flip();
-                if (res > 0) {
+                if(res > 0) {
                     channel.write(buf);
                 }
-                buf.compact();
+                buf.clear();
+            }
+            System.out.println("Ожидаем ответа от получателя");
+            while (!isAnswer) {
+                channel.read(response);
+                String answer = new String(response.array());
+                if (answer.equals("OK")) {
+                    System.out.println("Файл успешно принят сервером");
+                    isAnswer = true;
+                } else if(answer.equals("NO")){
+                    System.out.println("Файл не принят сервером");
+                    isAnswer = true;
+                }
             }
             fileChannel.close();
+            response.clear();
         } catch (IOException e) {
-            throw new IOException("Не удалось отправить файл");
+            System.out.println("Не удалось отправить файл");
+        } finally {
+            try {
+                channel.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-        channel.close();
 
     }
 
-    private void sendFileInfo(FileInfo fileInfo) throws Exception {
-
-        String gMessage = gson.toJson(fileInfo);
-        System.out.println("Send gson FileInfo: " + gMessage);
-        channel.write(ByteBuffer.wrap(gMessage.getBytes()));
-    }
-
-    private void sendFileName(String filename) throws IOException {
-        String gMessage = gson.toJson(filename);
-        System.out.println("Send gson filename: " + gMessage);
-        channel.write(ByteBuffer.wrap(gMessage.getBytes()));
-    }
-
-    public void sendAllFilesFromDir() throws Exception {
-        ByteBuffer response = ByteBuffer.allocate(2);
-        int answer = 0;
-        FileInfo file = new FileInfo(path);
-        sendFileName(file.getFilename());
+    public void sendAllFilesFromDir(){
         sendFile(path);
-        response.clear();
     }
 
-    public void sendDir(String string) throws IOException {
-        channel.write(ByteBuffer.wrap(string.getBytes()));
+    public void sendAuthResponse(String response) throws IOException {
+        String gMessage = gson.toJson(response);
+        channel.write(ByteBuffer.wrap(gMessage.getBytes()));
     }
 }

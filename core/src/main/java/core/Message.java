@@ -1,11 +1,12 @@
 package core;
 
-import java.nio.file.Path;
 
 public class Message {
 
-    private final FileInfo fileInfo;
+    private long fileSize = 0;
+    private FileInfo fileInfo = null;
     private final Command cmd;
+    private String token = null;
     private String additional = null;
 
     public Message(Command cmd, FileInfo fileInfo) {
@@ -19,6 +20,21 @@ public class Message {
         this.additional = additional;
     }
 
+    public Message(Command cmd, String token) {
+        this.cmd = cmd;
+        this.token = token;
+    }
+
+    public Message(Command upload, FileInfo fileInfo, String filename, long size) {
+        this.cmd = upload;
+        this.fileInfo = fileInfo;
+        this.additional = filename;
+        this.fileSize = size;
+    }
+
+    public long getFileSize() {
+        return fileSize;
+    }
 
     public FileInfo getFileInfo() {
         return fileInfo;
@@ -32,11 +48,16 @@ public class Message {
         return additional;
     }
 
+    public String getToken() {
+        return token;
+    }
+
     @Override
     public String toString() {
         return "Message{" +
                 "fileInfo=" + fileInfo +
                 ", cmd=" + cmd +
+                ", token='" + token + '\'' +
                 ", additional='" + additional + '\'' +
                 '}';
     }
