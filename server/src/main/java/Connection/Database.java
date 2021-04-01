@@ -8,8 +8,8 @@ public class Database {
     public static void connect(){
         try {
             connection = DriverManager.getConnection("jdbc:sqlite:server/file_hosting.db");
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
+        } catch (SQLException throwable) {
+            throwable.printStackTrace();
         }
     }
 

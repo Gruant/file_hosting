@@ -29,8 +29,13 @@ public class Controller implements Initializable {
     private ClientChannel clientChannel;
     private Sender sender;
     private Receiver receiver;
-    private final Path ROOT = Paths.get("TestDir");
-    private Path currentPath = ROOT;
+    private final Path ROOT;
+    private Path currentPath;
+
+    public Controller() throws IOException {
+        ROOT = Paths.get(getProperties().getProperty("folder"));
+        currentPath = ROOT;
+    }
 
 
     public void initialize(URL location, ResourceBundle resources) {
@@ -73,7 +78,7 @@ public class Controller implements Initializable {
     }
 
     public void updateList(Path path) throws Exception {
-        this.clientChannel.start();
+        connect();
 
 
         FileInfo requestedDir = new FileInfo(path);
@@ -102,7 +107,7 @@ public class Controller implements Initializable {
     }
 
     public void btnDelete() throws Exception {
-        this.clientChannel.start();
+        connect();
         Path path = Paths.get(getSelectedPath());
         Message message = new Message(Command.DELETE, new FileInfo(path));
         sender = new Sender(this.clientChannel.getChannel(), message);
@@ -121,7 +126,7 @@ public class Controller implements Initializable {
 
         File downloadDir = dirToSave.showDialog(null);
 
-        this.clientChannel.start();
+        connect();
         sender = new Sender(this.clientChannel.getChannel(), message);
         sender.sendMessage();
         receiver = new Receiver(this.clientChannel.getChannel());
@@ -129,7 +134,7 @@ public class Controller implements Initializable {
         this.clientChannel.close();
 
         for (String p : paths) {
-            this.clientChannel.start();
+            connect();
             FileInfo fileInfo = new FileInfo(Paths.get(p));
             mkDirs(Paths.get(fileInfo.getStringPath()), fileInfo.getFilename());
             Message downloadMessage = new Message(Command.DOWNLOAD, fileInfo);
@@ -147,7 +152,7 @@ public class Controller implements Initializable {
         List<File> selectedFile = fileChooser.showOpenMultipleDialog(null);
 
         for (File file: selectedFile) {
-            this.clientChannel.start();
+            connect();
             FileInfo fileInfo = new FileInfo(Paths.get(file.getPath()));
             Message message = new Message(Command.UPLOAD, new FileInfo(currentPath), fileInfo.getFilename(), fileInfo.getSize());
             sender = new Sender(this.clientChannel.getChannel(), message);
@@ -207,7 +212,7 @@ public class Controller implements Initializable {
     }
 
     private String isAuthByToken() throws IOException {
-        String token = getToken();
+        String token = getProperties().getProperty("token");
         Message message = new Message(Command.AUTH, token);
         sender = new Sender(this.clientChannel.getChannel(), message);
         sender.sendMessage();
@@ -215,11 +220,11 @@ public class Controller implements Initializable {
         return receiver.getAuthResponse();
     }
 
-    private String getToken() throws IOException {
+    private Properties getProperties() throws IOException {
         Properties props = new Properties();
         URL url = ClassLoader.getSystemResource("token.properties");
         props.load(url.openStream());
-        return props.getProperty("token");
+        return props;
     }
 
 

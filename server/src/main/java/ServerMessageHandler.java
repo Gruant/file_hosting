@@ -25,9 +25,13 @@ public class ServerMessageHandler {
 
 
     private void handle() throws Exception {
-
+        // Папка создается пока как заглушка
         if (message.getCmd() == Command.AUTH){
             String token = message.getToken();
+            File file = new File("TestDir");
+            if (!file.exists()){
+                file.mkdir();
+            }
             Database.connect();
             Boolean isUser = Database.authByToken(token);
             Database.disconnect();
