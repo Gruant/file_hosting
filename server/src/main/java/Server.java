@@ -15,8 +15,7 @@ public class Server {
 
     private final Selector acceptSelector;
 
-    private ServerSocketChannel serverSocket;
-    private Receiver receiver;
+    private final ServerSocketChannel serverSocket;
 
 
     public Server() throws IOException {
@@ -77,7 +76,7 @@ public class Server {
 
     public void readMessage(SelectionKey key) throws Exception {
         SocketChannel client = (SocketChannel) key.channel();
-        receiver = new Receiver(client);
+        Receiver receiver = new Receiver(client);
         new ServerMessageHandler(receiver.readMessage(), client);
     }
 }

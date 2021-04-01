@@ -3,7 +3,7 @@ package gui;
 import core.*;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -21,8 +21,11 @@ import java.nio.file.Paths;
 import java.util.*;
 
 public class Controller implements Initializable {
+    @FXML
     public TableView filesTable;
+    @FXML
     public TextField pathField;
+
     private ClientChannel clientChannel;
     private Sender sender;
     private Receiver receiver;
@@ -89,7 +92,7 @@ public class Controller implements Initializable {
         filesTable.sort();
     }
 
-    public void itemExitAction(ActionEvent actionEvent) {
+    public void itemExitAction() {
         this.clientChannel.close();
         Platform.exit();
     }
@@ -98,7 +101,7 @@ public class Controller implements Initializable {
         return ((FileInfo) filesTable.getSelectionModel().getSelectedItem()).getStringPath();
     }
 
-    public void btnDelete(ActionEvent actionEvent) throws Exception {
+    public void btnDelete() throws Exception {
         this.clientChannel.start();
         Path path = Paths.get(getSelectedPath());
         Message message = new Message(Command.DELETE, new FileInfo(path));
@@ -138,7 +141,7 @@ public class Controller implements Initializable {
         }
     }
 
-    public void btnUpload(ActionEvent actionEvent) throws Exception {
+    public void btnUpload() throws Exception {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open Resource File");
         List<File> selectedFile = fileChooser.showOpenMultipleDialog(null);
@@ -156,12 +159,12 @@ public class Controller implements Initializable {
         updateList(currentPath);
     }
 
-    public void btnFldCreate(ActionEvent actionEvent) throws Exception {
+    public void btnFldCreate() throws Exception {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Inter folder name");
         dialog.setContentText("Please enter folder name:");
         dialog.showAndWait();
-        String result = null;
+        String result;
         result = dialog.getResult();
         if (result != null) {
             dialog.close();
@@ -176,7 +179,7 @@ public class Controller implements Initializable {
     }
 
 
-    public void btnBack(ActionEvent actionEvent) throws Exception {
+    public void btnBack() throws Exception {
         Path upperPath = Paths.get(pathField.getText()).getParent();
         if (upperPath != null) {
             updateList(upperPath);
@@ -209,8 +212,7 @@ public class Controller implements Initializable {
         sender = new Sender(this.clientChannel.getChannel(), message);
         sender.sendMessage();
         receiver = new Receiver(this.clientChannel.getChannel());
-        String response =  receiver.getAuthResponse();
-        return response;
+        return receiver.getAuthResponse();
     }
 
     private String getToken() throws IOException {

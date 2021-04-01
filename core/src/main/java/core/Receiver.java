@@ -19,7 +19,6 @@ public class Receiver {
     private final Gson gson = new Gson();
     private final Type itemsListType = new TypeToken<List<FileInfo>>(){}.getType();
     private final Type pathsListType = new TypeToken<List<String>>(){}.getType();
-    private final Type fileInfo = new TypeToken<FileInfo>(){}.getType();
 
 
     public Receiver(SocketChannel channel) {
@@ -33,27 +32,6 @@ public class Receiver {
         JsonReader reader = new JsonReader(new StringReader(gMessage));
         reader.setLenient(true);
         return gson.fromJson(reader, Message.class);
-    }
-
-    private FileInfo getFileInfo() throws IOException{
-        data.clear();
-        channel.read(data);
-        String gMessage = new String(data.array());
-        JsonReader reader = new JsonReader(new StringReader(gMessage));
-        reader.setLenient(true);
-        System.out.println("Полученная строка" + gMessage);
-        return gson.fromJson(reader, fileInfo);
-    }
-
-    private String getFileName() throws IOException {
-        data.clear();
-        channel.read(data);
-        String gMessage = new String(data.array());
-        JsonReader reader = new JsonReader(new StringReader(gMessage));
-        reader.setLenient(true);
-        String answer = gson.fromJson(reader, String.class);
-        System.out.println("Полученная строка" + answer);
-        return answer;
     }
 
     public void getFile(Path dirToWrite, Path uploadedFileName, Long size) throws IOException {
@@ -83,13 +61,6 @@ public class Receiver {
         } finally {
             channel.close();
         }
-    }
-
-
-    public String getDir() throws IOException {
-        data.clear();
-        channel.read(data);
-        return new String(data.array());
     }
 
     public List<FileInfo> getFilesList() throws IOException{

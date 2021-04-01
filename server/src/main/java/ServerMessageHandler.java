@@ -10,13 +10,11 @@ import java.nio.channels.SocketChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 
 public class ServerMessageHandler {
 
     private final Message message;
     private final SocketChannel channel;
-    private final Database db = new Database();
 
     public ServerMessageHandler(Message message, SocketChannel channel) throws Exception {
         this.message = message;
@@ -96,8 +94,7 @@ public class ServerMessageHandler {
         if (file.isDirectory()) {
             File[] list = file.listFiles();
             if (list != null) {
-                for (int i = 0; i < list.length; i++) {
-                    File tmpF = list[i];
+                for (File tmpF : list) {
                     if (tmpF.isDirectory()) {
                         rmFile(tmpF);
                     }

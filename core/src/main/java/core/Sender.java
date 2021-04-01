@@ -1,24 +1,15 @@
 package core;
 
 import com.google.gson.Gson;
-import com.google.gson.internal.bind.util.ISO8601Utils;
 import com.google.gson.reflect.TypeToken;
-import com.google.gson.stream.JsonReader;
-import org.w3c.dom.ls.LSOutput;
-import sun.text.normalizer.UTF16;
-
 import java.io.IOException;
-import java.io.StringReader;
 import java.lang.reflect.Type;
-import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.SQLOutput;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,7 +20,6 @@ public class Sender {
     private final Gson gson = new Gson();
     private final Type itemsListType = new TypeToken<List<FileInfo>>(){}.getType();
     private final Type pathsListType = new TypeToken<List<Path>>(){}.getType();
-    private final Type fileInfo = new TypeToken<FileInfo>(){}.getType();
 
     public Sender(SocketChannel socketChannel){
         this.channel = socketChannel;
@@ -84,7 +74,7 @@ public class Sender {
 
     private void sendFile(Path path){
         ByteBuffer response = ByteBuffer.allocate(2);
-        Boolean isAnswer = false;
+        boolean isAnswer = false;
         try {
             FileChannel fileChannel = FileChannel.open(path);
             System.out.println("Send file: " + path);
