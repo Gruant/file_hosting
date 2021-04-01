@@ -70,7 +70,6 @@ public class ServerMessageHandler {
 
         if(message.getCmd().equals(Command.GET_FILES_PATH)){
             String stringPath = message.getFileInfo().getStringPath();
-            System.out.println(stringPath);
             Path path = Paths.get(stringPath);
             Sender sender = new Sender(this.channel, path);
             sender.sendAllFilesList();
@@ -79,7 +78,6 @@ public class ServerMessageHandler {
 
         if(message.getCmd().equals(Command.DOWNLOAD)){
             String stringPath = message.getFileInfo().getStringPath();
-            System.out.println("Отправлен файл: " + stringPath);
             Path path = Paths.get(stringPath);
             Sender sender = new Sender(this.channel, path);
             sender.sendAllFilesFromDir();

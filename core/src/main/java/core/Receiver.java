@@ -52,12 +52,9 @@ public class Receiver {
                 }
                 buf.compact();
             }
-//
-            System.out.println("Дj отправки ответа");
             channel.write(ByteBuffer.wrap("OK".getBytes()));
-            System.out.println("После отправки ответа");
         } catch (IOException e){
-            channel.write(ByteBuffer.wrap("NO".getBytes()));
+            throw new IOException("Не удалось записать файл");
         } finally {
             channel.close();
         }
@@ -76,7 +73,6 @@ public class Receiver {
         data.clear();
         channel.read(data);
         String gMessage = new String(data.array());
-        System.out.println("Получено: " + gMessage );
         JsonReader reader = new JsonReader(new StringReader(gMessage));
         reader.setLenient(true);
         return gson.fromJson(reader, pathsListType);

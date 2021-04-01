@@ -77,12 +77,10 @@ public class Sender {
         boolean isAnswer = false;
         try {
             FileChannel fileChannel = FileChannel.open(path);
-            System.out.println("Send file: " + path);
             ByteBuffer buf = ByteBuffer.allocate(1024);
             int res = 1;
             while (res > 0){
                 res = fileChannel.read(buf);
-                System.out.println(res);
                 buf.flip();
                 if(res > 0) {
                     channel.write(buf);

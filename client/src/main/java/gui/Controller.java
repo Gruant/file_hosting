@@ -112,7 +112,6 @@ public class Controller implements Initializable {
         Message message = new Message(Command.DELETE, new FileInfo(path));
         sender = new Sender(this.clientChannel.getChannel(), message);
         sender.sendMessage();
-        System.out.println("Отправлено сообщение " + message);
         updateList(currentPath);
     }
 
@@ -138,7 +137,6 @@ public class Controller implements Initializable {
             FileInfo fileInfo = new FileInfo(Paths.get(p));
             mkDirs(Paths.get(fileInfo.getStringPath()), fileInfo.getFilename());
             Message downloadMessage = new Message(Command.DOWNLOAD, fileInfo);
-            System.out.println(fileInfo.toString());
             sender = new Sender(this.clientChannel.getChannel(), downloadMessage);
             sender.sendMessage();
             receiver = new Receiver(clientChannel.getChannel());
@@ -158,7 +156,6 @@ public class Controller implements Initializable {
             sender = new Sender(this.clientChannel.getChannel(), message);
             sender.sendMessage();
             sender = new Sender(clientChannel.getChannel(), Paths.get(file.getPath()));
-            System.out.println("Send file path" + file.getPath());
             sender.sendAllFilesFromDir();
         }
         updateList(currentPath);
@@ -177,7 +174,6 @@ public class Controller implements Initializable {
             connect();
             Message message = new Message(Command.MAKE_DIR, new FileInfo(currentPath), result);
             sender = new Sender(this.clientChannel.getChannel(), message);
-            System.out.println(message.toString());
             sender.sendMessage();
         }
         updateList(currentPath);

@@ -22,7 +22,6 @@ public class ClientChannel {
     public void close(){
         try {
             channel.close();
-            System.out.println("Канал закрыт");
         }catch (IOException e){
             e.printStackTrace();
         }
