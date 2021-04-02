@@ -1,7 +1,8 @@
 package core;
 
 public enum Command {
-    AUTH("0"),
+    AUTH_BY_TOKEN("0"),
+    AUTH_BY_USER_INFO("7"),
     GET_LIST("1"),
     UPLOAD("2"),
     DOWNLOAD("3"),

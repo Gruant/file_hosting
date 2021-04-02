@@ -31,6 +31,8 @@ public class Controller implements Initializable {
     private Receiver receiver;
     private final Path ROOT;
     private Path currentPath;
+    private String login;
+    private String password;
 
     public Controller() throws IOException {
         ROOT = Paths.get(getProperties().getProperty("folder"));
@@ -198,18 +200,45 @@ public class Controller implements Initializable {
     }
 
     public void connect() throws Exception {
+        String response;
         this.clientChannel.start();
-        String response = isAuthByToken();
+        System.out.println("Start");
+        response = isAuthByToken();
+        System.out.println("Get Auth Token response: " + response);
         if(response.equals("false")){
+            boolean getLoginInfo = false;
+            new Authentication(this);
+            while(!getLoginInfo){
+                if(login != null && password != null){
+                    getLoginInfo = true;
+                }
+            }
+            response =  authByLoginPassword(login, password);
+            System.out.println("Get Auth LogPass response: " + response);
+            if (response.equals("false")){
+                this.clientChannel.close();
+            } else {
+                refreshUserInfo();
+            }
             this.clientChannel.close();
+            connect();
+
         }
         System.out.println(this.clientChannel.toString());
 
     }
 
+    private void refreshUserInfo() throws IOException {
+        receiver = new Receiver(this.clientChannel.getChannel());
+        User user = receiver.getUserInfo();
+        Properties prop = getProperties();
+        prop.setProperty("token", user.getToken());
+        prop.setProperty("folder", user.getFolder());
+    }
+
     private String isAuthByToken() throws IOException {
         String token = getProperties().getProperty("token");
-        Message message = new Message(Command.AUTH, token);
+        Message message = new Message(Command.AUTH_BY_TOKEN, token);
         sender = new Sender(this.clientChannel.getChannel(), message);
         sender.sendMessage();
         receiver = new Receiver(this.clientChannel.getChannel());
@@ -223,15 +252,24 @@ public class Controller implements Initializable {
         return props;
     }
 
-
-    private void setToken(String token){
-
+    public void setData(String login, String password) {
+        setLogin(login);
+        setPassword(password);
     }
 
-    public boolean authByLoginPassword(){
-//        отправить объект user
-//        получить объект user
-//        записать папку и токен
-        return false;
+    public String authByLoginPassword(String login, String password) throws IOException {
+        User user = new User(login, password);
+        Message message = new Message(Command.AUTH_BY_USER_INFO, user);
+        sender = new Sender(this.clientChannel.getChannel(), message);
+        receiver = new Receiver(this.clientChannel.getChannel());
+        return receiver.getAuthResponse();
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

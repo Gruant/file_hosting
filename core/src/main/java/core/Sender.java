@@ -20,6 +20,7 @@ public class Sender {
     private final Gson gson = new Gson();
     private final Type itemsListType = new TypeToken<List<FileInfo>>(){}.getType();
     private final Type pathsListType = new TypeToken<List<Path>>(){}.getType();
+    private final Type userType = new TypeToken<User>(){}.getType();
 
     public Sender(SocketChannel socketChannel){
         this.channel = socketChannel;
@@ -49,6 +50,11 @@ public class Sender {
     public void sendFilesListFromDir() throws IOException {
         List<FileInfo> filesList = getFilesFromDir(path);
         String gMessage = gson.toJson(filesList, itemsListType);
+        channel.write(ByteBuffer.wrap(gMessage.getBytes()));
+    }
+
+    public void sendUserInfo(User user) throws IOException {
+        String gMessage = gson.toJson(user, userType);
         channel.write(ByteBuffer.wrap(gMessage.getBytes()));
     }
 

@@ -10,9 +10,9 @@
       <font>
          <Font size="18.0" />
       </font></Label>
-    <TextField prefHeight="44.0" prefWidth="600.0" promptText="Login" />
+    <TextField fx:id="login" prefHeight="44.0" prefWidth="600.0" promptText="Login" />
     <Label disable="true" />
-    <PasswordField prefHeight="48.0" prefWidth="600.0" promptText="Password" />
+    <PasswordField fx:id="password"  prefHeight="48.0" prefWidth="600.0" promptText="Password" />
     <Label disable="true" />
-    <Button alignment="CENTER" prefHeight="48.0" prefWidth="200" text="Log In" />
+    <Button fx:id="confirm" alignment="CENTER" prefHeight="48.0" prefWidth="200" text="Log In" onAction="#btnConfirm"/>
 </VBox>

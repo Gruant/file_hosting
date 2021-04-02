@@ -3,6 +3,7 @@ package core;
 
 public class Message {
 
+    private User user = null;
     private long fileSize = 0;
     private FileInfo fileInfo = null;
     private final Command cmd;
@@ -32,6 +33,11 @@ public class Message {
         this.fileSize = size;
     }
 
+    public Message(Command auth, User user){
+        this.cmd = auth;
+        this.user = user;
+    }
+
     public long getFileSize() {
         return fileSize;
     }
@@ -50,6 +56,10 @@ public class Message {
 
     public String getToken() {
         return token;
+    }
+
+    public User getUser() {
+        return user;
     }
 
     @Override

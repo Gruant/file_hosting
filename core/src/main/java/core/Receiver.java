@@ -19,6 +19,7 @@ public class Receiver {
     private final Gson gson = new Gson();
     private final Type itemsListType = new TypeToken<List<FileInfo>>(){}.getType();
     private final Type pathsListType = new TypeToken<List<String>>(){}.getType();
+    private final Type userType = new TypeToken<User>(){}.getType();
 
 
     public Receiver(SocketChannel channel) {
@@ -87,14 +88,15 @@ public class Receiver {
         return gson.fromJson(reader, String.class);
     }
 
-    public String getTokenFromServer() throws IOException {
+    public User getUserInfo() throws IOException {
         data.clear();
         channel.read(data);
         String gMessage = new String(data.array());
         JsonReader reader = new JsonReader(new StringReader(gMessage));
         reader.setLenient(true);
-        return gson.fromJson(reader, String.class);
+        return gson.fromJson(reader, userType);
     }
+
 
 }
 

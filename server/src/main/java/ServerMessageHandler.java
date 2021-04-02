@@ -1,8 +1,6 @@
 import Connection.Database;
-import core.Command;
-import core.Message;
-import core.Receiver;
-import core.Sender;
+import com.sun.org.apache.xpath.internal.operations.Bool;
+import core.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +13,7 @@ public class ServerMessageHandler {
 
     private final Message message;
     private final SocketChannel channel;
+    private Boolean isUser;
 
     public ServerMessageHandler(Message message, SocketChannel channel) throws Exception {
         this.message = message;
@@ -26,18 +25,28 @@ public class ServerMessageHandler {
 
     private void handle() throws Exception {
         // Папка создается пока как заглушка
-        if (message.getCmd() == Command.AUTH){
+        if (message.getCmd() == Command.AUTH_BY_TOKEN){
             String token = message.getToken();
-            File file = new File("TestDir");
-            if (!file.exists()){
-                file.mkdir();
-            }
             Database.connect();
-            Boolean isUser = Database.authByToken(token);
+            isUser = Database.authByToken(token);
             Database.disconnect();
             System.out.println(isUser);
             Sender sender = new Sender(this.channel);
             sender.sendAuthResponse(isUser.toString());
+        }
+
+        if (message.getCmd() == Command.AUTH_BY_USER_INFO){
+            User user = message.getUser();
+            Database.connect();
+            isUser = Database.authByLogPass(user);
+            Sender sender = new Sender(this.channel);
+            sender.sendAuthResponse(isUser.toString());
+            if (isUser) {
+                Sender userSender = new Sender(this.channel);
+                userSender.sendUserInfo(Database.UserInfo(user));
+            }
+            Database.disconnect();
+            System.out.println(isUser);
         }
 
         if (message.getCmd() == Command.GET_LIST){
