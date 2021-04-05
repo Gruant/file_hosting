@@ -7,9 +7,11 @@
 <VBox alignment="center" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.Controller">
     <MenuBar>
         <Menu text="File Hosting">
-            <MenuItem text="Exit" onAction="#itemExitAction">
-
-            </MenuItem>
+            <MenuItem text="Exit" onAction="#itemExitAction"/>
+        </Menu>
+        <Menu text="LogIn and Registration">
+            <MenuItem text="Log In" onAction="#logIn"/>
+            <MenuItem text="Registration" onAction="#registration"/>
         </Menu>
     </MenuBar>
     <HBox spacing="5.0">

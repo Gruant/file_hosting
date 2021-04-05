@@ -1,6 +1,7 @@
 package core;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import java.io.*;
@@ -27,12 +28,18 @@ public class Receiver {
     }
 
     public Message readMessage() throws IOException{
-        data.clear();
-        channel.read(data);
-        String gMessage = new String(data.array());
-        JsonReader reader = new JsonReader(new StringReader(gMessage));
-        reader.setLenient(true);
-        return gson.fromJson(reader, Message.class);
+
+        try {
+            data.clear();
+            channel.read(data);
+            String gMessage = new String(data.array());
+            JsonReader reader = new JsonReader(new StringReader(gMessage));
+            reader.setLenient(true);
+            return gson.fromJson(reader, Message.class);
+        } catch (JsonSyntaxException e) {
+            channel.close();
+        }
+        return null;
     }
 
     public void getFile(Path dirToWrite, Path uploadedFileName, Long size) throws IOException {

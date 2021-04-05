@@ -1,4 +1,5 @@
 
+import com.google.gson.JsonSyntaxException;
 import core.Receiver;
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -75,8 +76,8 @@ public class Server {
     }
 
     public void readMessage(SelectionKey key) throws Exception {
-        SocketChannel client = (SocketChannel) key.channel();
-        Receiver receiver = new Receiver(client);
-        new ServerMessageHandler(receiver.readMessage(), client);
+            SocketChannel client = (SocketChannel) key.channel();
+            Receiver receiver = new Receiver(client);
+            new ServerMessageHandler(receiver.readMessage(), client);
     }
 }

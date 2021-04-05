@@ -4,6 +4,7 @@ import core.User;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.UUID;
 
 public class Database {
     private static Connection connection;
@@ -17,9 +18,18 @@ public class Database {
     }
 
 
-//    public static User createUser(User user) {
-//
-//    }
+    public static void createUser(User user) {
+        String sql = "INSERT INTO user (login, password, token, folder) VALUES(?, ?, ?, ?)";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, user.getLogin());
+            pstmt.setString(2, user.getPassword());
+            pstmt.setString(3, UUID.randomUUID().toString());
+            pstmt.setString(4, user.getLogin());
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
 
     public static Boolean authByToken(String token) {
         String sql = "SELECT token FROM user WHERE token=?";

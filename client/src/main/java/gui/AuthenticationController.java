@@ -1,5 +1,6 @@
 package gui;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -8,16 +9,13 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
-public class Registration {
 
+public class AuthenticationController {
 
     @FXML
     private TextField login;
     @FXML
     private PasswordField password;
-    @FXML
-    private PasswordField passwordConfirm;
-
     private Stage dialogStage;
     @FXML
     private Button confirm;
@@ -46,13 +44,6 @@ public class Registration {
         if (password.getText() == null || password.getText().length() == 0){
             errorMessage += "No valid password!\n";
         }
-        if (passwordConfirm.getText() == null || passwordConfirm.getText().length() == 0){
-            errorMessage += "No valid password!\n";
-        }
-        if (!passwordConfirm.getText().equals(password.getText())){
-            errorMessage += "Passwords not equal!\n";
-        }
-
         if (errorMessage.length() == 0) {
             return true;
         } else {

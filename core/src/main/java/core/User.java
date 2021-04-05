@@ -50,4 +50,14 @@ public class User {
     public void setFolder(String folder) {
         this.folder = folder;
     }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "login='" + login + '\'' +
+                ", password='" + password + '\'' +
+                ", token='" + token + '\'' +
+                ", folder='" + folder + '\'' +
+                '}';
+    }
 }

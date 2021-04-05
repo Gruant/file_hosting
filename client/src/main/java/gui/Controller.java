@@ -3,14 +3,15 @@ package gui;
 import core.*;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TextInputDialog;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,16 +28,16 @@ public class Controller implements Initializable {
     public TextField pathField;
 
     private ClientChannel clientChannel;
+    private String token;
+    private String folder = "";
     private Sender sender;
     private Receiver receiver;
-    private final Path ROOT;
     private Path currentPath;
     private String login;
     private String password;
 
     public Controller() throws IOException {
-        ROOT = Paths.get(getProperties().getProperty("folder"));
-        currentPath = ROOT;
+
     }
 
 
@@ -72,7 +73,8 @@ public class Controller implements Initializable {
         });
 
         try {
-            updateList(ROOT);
+            System.out.println(folder);
+            updateList(Paths.get(folder));
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -80,23 +82,22 @@ public class Controller implements Initializable {
     }
 
     public void updateList(Path path) throws Exception {
-        connect();
+        if(connect()) {
+            FileInfo requestedDir = new FileInfo(path);
+            Message message = new Message(Command.GET_LIST, requestedDir);
 
+            sender = new Sender(this.clientChannel.getChannel(), message);
+            receiver = new Receiver(this.clientChannel.getChannel());
+            sender.sendMessage();
 
-        FileInfo requestedDir = new FileInfo(path);
-        Message message = new Message(Command.GET_LIST, requestedDir);
+            List<FileInfo> filesList = receiver.getFilesList();
 
-        sender = new Sender(this.clientChannel.getChannel(), message);
-        receiver = new Receiver(this.clientChannel.getChannel());
-        sender.sendMessage();
-
-        List<FileInfo> filesList = receiver.getFilesList();
-
-        currentPath = path;
-        pathField.setText(currentPath.toString());
-        filesTable.getItems().clear();
-        filesTable.getItems().addAll(filesList);
-        filesTable.sort();
+            currentPath = path;
+            pathField.setText(currentPath.toString());
+            filesTable.getItems().clear();
+            filesTable.getItems().addAll(filesList);
+            filesTable.sort();
+        }
     }
 
     public void itemExitAction() {
@@ -199,45 +200,30 @@ public class Controller implements Initializable {
         }
     }
 
-    public void connect() throws Exception {
+    public Boolean connect() throws Exception {
         String response;
         this.clientChannel.start();
-        System.out.println("Start");
         response = isAuthByToken();
         System.out.println("Get Auth Token response: " + response);
-        if(response.equals("false")){
-            boolean getLoginInfo = false;
-            new Authentication(this);
-            while(!getLoginInfo){
-                if(login != null && password != null){
-                    getLoginInfo = true;
-                }
-            }
-            response =  authByLoginPassword(login, password);
-            System.out.println("Get Auth LogPass response: " + response);
-            if (response.equals("false")){
-                this.clientChannel.close();
-            } else {
-                refreshUserInfo();
-            }
-            this.clientChannel.close();
-            connect();
-
+        if (response.equals("false")) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Log In Error");
+            alert.setHeaderText("Login or registration required");
+            alert.showAndWait();
+            return false;
         }
-        System.out.println(this.clientChannel.toString());
-
+        return true;
     }
+
 
     private void refreshUserInfo() throws IOException {
         receiver = new Receiver(this.clientChannel.getChannel());
         User user = receiver.getUserInfo();
-        Properties prop = getProperties();
-        prop.setProperty("token", user.getToken());
-        prop.setProperty("folder", user.getFolder());
+        token = user.getToken();
+        folder = user.getFolder();
     }
 
     private String isAuthByToken() throws IOException {
-        String token = getProperties().getProperty("token");
         Message message = new Message(Command.AUTH_BY_TOKEN, token);
         sender = new Sender(this.clientChannel.getChannel(), message);
         sender.sendMessage();
@@ -245,22 +231,12 @@ public class Controller implements Initializable {
         return receiver.getAuthResponse();
     }
 
-    private Properties getProperties() throws IOException {
-        Properties props = new Properties();
-        URL url = ClassLoader.getSystemResource("token.properties");
-        props.load(url.openStream());
-        return props;
-    }
-
-    public void setData(String login, String password) {
-        setLogin(login);
-        setPassword(password);
-    }
 
     public String authByLoginPassword(String login, String password) throws IOException {
         User user = new User(login, password);
         Message message = new Message(Command.AUTH_BY_USER_INFO, user);
         sender = new Sender(this.clientChannel.getChannel(), message);
+        sender.sendMessage();
         receiver = new Receiver(this.clientChannel.getChannel());
         return receiver.getAuthResponse();
     }
@@ -272,4 +248,61 @@ public class Controller implements Initializable {
     public void setPassword(String password) {
         this.password = password;
     }
+
+    public void logIn(ActionEvent actionEvent){
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader();
+            fxmlLoader.setLocation(getClass().getResource("../authentication.fxml"));
+
+            Scene scene = new Scene(fxmlLoader.load(), 300, 300);
+            Stage stage = new Stage();
+            stage.setTitle("New Window");
+            stage.setScene(scene);
+            AuthenticationController authenticationController = fxmlLoader.getController();
+            authenticationController.main = this;
+            stage.showAndWait();
+            String response = authByLoginPassword(login, password);
+            if(response.equals("false")){
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Log In Error");
+                alert.setHeaderText("Incorrect login/password");
+                alert.showAndWait();
+            } else if(response.equals("true")){
+                refreshUserInfo();
+                currentPath = Paths.get(folder);
+                updateList(currentPath);
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    private void register(String login, String password) throws IOException {
+        User user = new User(login, password);
+        Message message = new Message(Command.REGISTRATION, user);
+        sender = new Sender(this.clientChannel.getChannel(), message);
+        sender.sendMessage();
+    }
+
+    public void registration(ActionEvent actionEvent) {
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader();
+            fxmlLoader.setLocation(getClass().getResource("../registration.fxml"));
+
+            Scene scene = new Scene(fxmlLoader.load(), 300, 300);
+            Stage stage = new Stage();
+            stage.setTitle("New Window");
+            stage.setScene(scene);
+            Registration registrationController = fxmlLoader.getController();
+            registrationController.main = this;
+            stage.showAndWait();
+            register(login, password);
+            refreshUserInfo();
+            currentPath = Paths.get(folder);
+            updateList(currentPath);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }

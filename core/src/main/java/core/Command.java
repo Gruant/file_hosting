@@ -8,7 +8,8 @@ public enum Command {
     DOWNLOAD("3"),
     MAKE_DIR("4"),
     GET_FILES_PATH("5"),
-    DELETE("6")
+    DELETE("6"),
+    REGISTRATION("7")
     ;
 
     private String cmd;
