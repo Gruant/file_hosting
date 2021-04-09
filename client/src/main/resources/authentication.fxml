@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox alignment="CENTER" prefHeight="200.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.AuthenticationController">
+
+<Label alignment="CENTER" prefHeight="80.0" prefWidth="200.0" text="Enter your username and password to Log In">
+      <font>
+         <Font size="18.0" />
+      </font></Label>
+    <TextField fx:id="login" prefHeight="44.0" prefWidth="200.0" promptText="Login" />
+    <Label disable="true" />
+    <PasswordField fx:id="password"  prefHeight="48.0" prefWidth="200.0" promptText="Password" />
+    <Label disable="true" />
+    <Button fx:id="confirm" alignment="CENTER" prefHeight="48.0" prefWidth="200" text="Log In" onAction="#btnConfirm"/>
+</VBox>
